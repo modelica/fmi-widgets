@@ -41,6 +41,7 @@ const toolboxDiv = { textAlign: "center", padding: "4px", borderRadius: "4px", b
 //   name: string;
 //   exporters: ImportReport[];
 // }
+const flexBasis = "auto";
 
 @observer
 export class SupportMatrixViewer extends React.Component<{}, {}> {
@@ -124,9 +125,20 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
     );
 
     let ekeys = Object.keys(this.export_tools);
+    let io: string[] = [];
+    let eo: string[] = [];
+    let both: string[] = [];
+
+    ekeys.forEach((key) => {
+      let exports = this.matrix.get().exporters.some((exp) => exp.id === key);
+      let imports = this.matrix.get().exporters.some((exp) => exp.columns.some((imp) => imp.id === key));
+      if (imports && exports) both.push(key);
+      if (imports && !exports) io.push(key);
+      if (exports && !imports) eo.push(key);
+    });
 
     return (
-      <div className="Support" style={{ margin: "10px" }}>
+      <div className="Support" style={{ margin: "10px", textOverflow: "ellipsis" }}>
         <div style={{ display: "flex" }}>
           <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
             FMI Version
@@ -166,61 +178,96 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
         </div>
         {this.loading && <div style={{ margin: "10px" }}><ProgressBar /></div>}
         {!this.loading && ekeys.length === 0 && <p>No tools match your filter parameters</p>}
-        {!this.loading && ekeys.length > 0 && <div>
-          <p>Select a tool to find out more about its FMI capabilities...</p>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
-            {ekeys.map((id, ti) => {
-              return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
-                  <small>{leftArrow(id)}</small>&nbsp;
+        {
+          !this.loading && ekeys.length > 0 && <div>
+            <p>Select a tool to find out more about its FMI capabilities...</p>
+            <div style={{ display: "flex" }}>
+              <div style={{ flexGrow: 1, flexBasis: flexBasis, textAlign: "center", borderRight: "1px dashed black", paddingRight: "5px", marginRight: "5px" }}>
+                <h4>Import only</h4>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+                  {io.map((id, ti) => {
+                    return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
+                      <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                        <small>{leftArrow(id)}</small>&nbsp;
                   {this.export_tools[id]}
-                  &nbsp;<small>{rightArrow(id)}</small>
-                </Button>
-              </div>;
-            })}
-          </div>
-          {this.selected && ekeys.indexOf(this.selected) >= 0 && <div>
-            <div style={{ marginTop: 20, margin: 5, display: "flex" }}>
-              <div style={{
-                minWidth: "400px", width: "50%", paddingTop: "30x", paddintBottom: "20px", paddingRight: "20px", borderTopRightRadius: "20px",
-                borderBottomRightRadius: "20px", borderRight: "1px solid black", textAlign: "end"
-              }}>
-                <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
-                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  {this.importsFrom && this.importsFrom.columns.length === 0 && <p>No tools import from {this.export_tools[this.selected]}</p>}
-                  {this.importsFrom && this.importsFrom.columns.map((exp) => {
-                    return (
-                      <div key={exp.id} style={toolboxDiv}>
-                        <p>{exp.name}</p>
-                        {supportBox(exp.summary)}
-                      </div>);
+                        &nbsp;<small>{rightArrow(id)}</small>
+                      </Button>
+                    </div>;
                   })}
                 </div>
               </div>
-              <div style={{ margin: "10px" }}>
-                <h2 style={{ whiteSpace: "nowrap" }}>
-                  <span className="pt-icon-arrow-right" />
-                  &nbsp;<span>{this.export_tools[this.selected]}</span>&nbsp;
-                  <span className="pt-icon-arrow-right" />
-                </h2>
+              <div style={{ flexGrow: 1, flexBasis: flexBasis, textAlign: "center" }}>
+                <h4>Import and Export</h4>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+                  {both.map((id, ti) => {
+                    return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
+                      <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                        <small>{leftArrow(id)}</small>&nbsp;
+                  {this.export_tools[id]}
+                        &nbsp;<small>{rightArrow(id)}</small>
+                      </Button>
+                    </div>;
+                  })}
+                </div>
               </div>
-              <div style={{ minWidth: "400px", width: "50%", paddingTop: "30x", paddingBottom: "20px", paddingLeft: "20px", borderTopLeftRadius: "20px", borderBottomLeftRadius: "20px", borderLeft: "1px solid black" }}>
-                <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
-                <div style={{ display: "flex", flexWrap: "wrap" }}>
-                  {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
-                  {this.exportsTo && this.exportsTo.columns.map((exp) => {
-                    return (
-                      <div key={exp.id} style={toolboxDiv}>
-                        <p>{exp.name}</p>
-                        {supportBox(exp.summary)}
-                      </div>);
+              <div style={{ flexGrow: 1, flexBasis: flexBasis, textAlign: "center", borderLeft: "1px dashed black", paddingLeft: "5px", marginLeft: "5px" }}>
+                <h4>Export only</h4>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
+                  {eo.map((id, ti) => {
+                    return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
+                      <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                        <small>{leftArrow(id)}</small>&nbsp;
+                  {this.export_tools[id]}
+                        &nbsp;<small>{rightArrow(id)}</small>
+                      </Button>
+                    </div>;
                   })}
                 </div>
               </div>
             </div>
-          </div>}
-        </div>}
-      </div>
+            {this.selected && ekeys.indexOf(this.selected) >= 0 && <div>
+              <div style={{ marginTop: 20, margin: 5, display: "flex" }}>
+                <div style={{
+                  minWidth: "400px", width: "50%", paddingTop: "30x", paddintBottom: "20px", paddingRight: "20px", borderTopRightRadius: "20px",
+                  borderBottomRightRadius: "20px", borderRight: "1px solid black", textAlign: "end"
+                }}>
+                  <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
+                  <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {this.importsFrom && this.importsFrom.columns.length === 0 && <p>No tools import from {this.export_tools[this.selected]}</p>}
+                    {this.importsFrom && this.importsFrom.columns.map((exp) => {
+                      return (
+                        <div key={exp.id} style={toolboxDiv}>
+                          <p>{exp.name}</p>
+                          {supportBox(exp.summary)}
+                        </div>);
+                    })}
+                  </div>
+                </div>
+                <div style={{ margin: "10px" }}>
+                  <h2 style={{ whiteSpace: "nowrap" }}>
+                    <span className="pt-icon-arrow-right" />
+                    &nbsp;<span style={{ textOverflow: "ellipsis", maxWidth: "10em", whiteSpace: "nowrap", overflowX: "hidden", overflowY: "visible", display: "inline-block" }}>{this.export_tools[this.selected]}</span>&nbsp;
+                  <span className="pt-icon-arrow-right" />
+                  </h2>
+                </div>
+                <div style={{ minWidth: "400px", width: "50%", paddingTop: "30x", paddingBottom: "20px", paddingLeft: "20px", borderTopLeftRadius: "20px", borderBottomLeftRadius: "20px", borderLeft: "1px solid black" }}>
+                  <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
+                  <div style={{ display: "flex", flexWrap: "wrap" }}>
+                    {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
+                    {this.exportsTo && this.exportsTo.columns.map((exp) => {
+                      return (
+                        <div key={exp.id} style={toolboxDiv}>
+                          <p>{exp.name}</p>
+                          {supportBox(exp.summary)}
+                        </div>);
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>}
+          </div>
+        }
+      </div >
     );
   }
 }
