@@ -1,10 +1,10 @@
 import * as React from 'react';
 import './support_matrix.css';
-import { MatrixReport, SupportStatus, RowReport } from 'fmi-database';
+import { MatrixReport, SupportStatus, RowReport, ColumnReport } from 'fmi-database';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
-import { Button, ProgressBar } from '@blueprintjs/core';
+import { Button, ProgressBar, Tooltip } from '@blueprintjs/core';
 
 const versionKey = "version";
 const variantKey = "variant";
@@ -30,6 +30,15 @@ async function queryDetails(version: string | undefined, variant: string | undef
   let resp = await fetch(req);
   return resp.json();
 }
+
+const supportBox = (support: SupportStatus, title: string, style?: React.CSSProperties) => (
+  <div className="pt-button-group pt-inline">
+    <label style={{ ...(style || {}), marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }}>{title}</label>
+    <a className="pt-button pt-intent-success" tabIndex={0} role="button">{support.passed}</a>
+    <a className="pt-button pt-intent-warning" tabIndex={0} role="button">{support.rejected}</a>
+    <a className="pt-button pt-intent-danger" tabIndex={0} role="button">{support.failed}</a>
+  </div>
+);
 
 const emptyMatrix: MatrixReport = { exporters: [], importers: [] };
 
@@ -124,14 +133,6 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
       if (exports) return <span className="pt-icon-arrow-right" />;
       return <span className="pt-icon-ban-circle" />;
     };
-    let supportBox = (support: SupportStatus, title: string) => (
-      <div className="pt-button-group pt-inline">
-        <label style={{ marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }}>{title}</label>
-        <a className="pt-button pt-intent-success" tabIndex={0} role="button">{support.passed}</a>
-        <a className="pt-button pt-intent-warning" tabIndex={0} role="button">{support.rejected}</a>
-        <a className="pt-button pt-intent-danger" tabIndex={0} role="button">{support.failed}</a>
-      </div>
-    );
 
     let ekeys = Object.keys(this.export_tools);
     let io: string[] = [];
@@ -242,10 +243,11 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                     {this.importsFrom && this.importsFrom.columns.length === 0 && <p>No tools import from {this.export_tools[this.selected]}</p>}
                     {this.importsFrom && this.importsFrom.columns.map((imp) => {
                       return (
-                        <div key={imp.id} style={toolboxDiv}>
-                          {/* <p>{imp.name}</p> */}
-                          {supportBox(imp.summary, imp.name)}
-                        </div>);
+                        <Tooltip key={imp.id} content={<VersionTable report={imp} />}>
+                          <div style={toolboxDiv}>
+                            {supportBox(imp.summary, imp.name)}
+                          </div>
+                        </Tooltip>);
                     })}
                   </div>
                 </div>
@@ -262,10 +264,11 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                     {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
                     {this.exportsTo && this.exportsTo.columns.map((exp) => {
                       return (
-                        <div key={exp.id} style={toolboxDiv}>
-                          {/* <p>{exp.name}</p> */}
-                          {supportBox(exp.summary, exp.name)}
-                        </div>);
+                        <Tooltip key={exp.id} content={<VersionTable report={exp} />}>
+                          <div key={exp.id} style={toolboxDiv}>
+                            {supportBox(exp.summary, exp.name)}
+                          </div>
+                        </Tooltip>);
                     })}
                   </div>
                 </div>
@@ -275,5 +278,29 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
         }
       </div >
     );
+  }
+}
+
+@observer
+export class VersionTable extends React.Component<{ report: ColumnReport }, {}> {
+  render() {
+    if (this.props.report.rows.length === 0) return null;
+    let rows = this.props.report.rows[0];
+    return (
+      <table>
+        <tr>
+          <td />
+          {rows.cols.map((col, ci) => <th key={ci}>{col.version}</th>)}
+        </tr>
+        {this.props.report.rows.map((row, ri) => {
+          return (
+            <tr key={ri}>
+              <th>{row.version}</th>
+              {row.cols.map((col, ci) => {
+                return <td key={ci}>{supportBox(col.status, "", { width: "100%" })}</td>;
+              })}
+            </tr>);
+        })}
+      </table>);
   }
 }
