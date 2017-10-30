@@ -4,7 +4,7 @@ import { MatrixReport, SupportStatus, RowReport } from 'fmi-database';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
-import { Button } from '@blueprintjs/core';
+import { Button, ProgressBar } from '@blueprintjs/core';
 
 const versionKey = "version";
 const variantKey = "variant";
@@ -33,6 +33,8 @@ async function queryDetails(version: string | undefined, variant: string | undef
 }
 
 const emptyMatrix: MatrixReport = { exporters: [], importers: [] };
+
+const toolboxDiv = { textAlign: "center", padding: "4px", borderRadius: "4px", border: "1px solid #cccccc", margin: "2px" };
 
 // interface ImportListing {
 //   id: string;
@@ -99,12 +101,18 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
     // });
   }
   render() {
-    let whichArrow = (id: string) => {
-      let imports = this.import_tools.hasOwnProperty(id);
-      let exports = this.export_tools.hasOwnProperty(id);
+    let leftArrow = (id: string) => {
+      let exports = this.matrix.get().exporters.some((exp) => exp.id === id);
+      let imports = this.matrix.get().exporters.some((exp) => exp.columns.some((imp) => imp.id === id));
+      if (imports && !exports) return <span className="pt-icon-arrow-right" />;
+      return null;
+    };
+    let rightArrow = (id: string) => {
+      let exports = this.matrix.get().exporters.some((exp) => exp.id === id);
+      let imports = this.matrix.get().exporters.some((exp) => exp.columns.some((imp) => imp.id === id));
       if (imports && exports) return <span className="pt-icon-arrows-horizontal" />;
-      if (imports) return <span className="pt-icon-arrow-left" />;
-      if (imports) return <span className="pt-icon-arrow-right" />;
+      if (imports) return null;
+      if (exports) return <span className="pt-icon-arrow-right" />;
       return <span className="pt-icon-ban-circle" />;
     };
     let supportBox = (support: SupportStatus) => (
@@ -115,8 +123,10 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
       </div>
     );
 
+    let ekeys = Object.keys(this.export_tools);
+
     return (
-      <div className="Support">
+      <div className="Support" style={{ margin: "10px" }}>
         <div style={{ display: "flex" }}>
           <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
             FMI Version
@@ -154,49 +164,58 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
             </div>
           </label>
         </div>
-        {this.loading && <p>Loading...</p>}
-        {!this.loading && <div>
+        {this.loading && <div style={{ margin: "10px" }}><ProgressBar /></div>}
+        {!this.loading && ekeys.length === 0 && <p>No tools match your filter parameters</p>}
+        {!this.loading && ekeys.length > 0 && <div>
+          <p>Select a tool to find out more about its FMI capabilities...</p>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
-            {Object.keys(this.export_tools).map((id, ti) => {
+            {ekeys.map((id, ti) => {
               return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
                 <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                  <small>{leftArrow(id)}</small>&nbsp;
                   {this.export_tools[id]}
-                  &nbsp;<small>{whichArrow(id)}</small>
+                  &nbsp;<small>{rightArrow(id)}</small>
                 </Button>
               </div>;
             })}
           </div>
-          {this.selected && <div>
-            <div style={{ margin: 5, display: "flex" }}>
+          {this.selected && ekeys.indexOf(this.selected) >= 0 && <div>
+            <div style={{ marginTop: 20, margin: 5, display: "flex" }}>
               <div style={{
-                minWidth: "400px", width: "50%", paddingTop: "20x", paddintBottom: "20px", paddingRight: "20px", borderTopRightRadius: "20px",
+                minWidth: "400px", width: "50%", paddingTop: "30x", paddintBottom: "20px", paddingRight: "20px", borderTopRightRadius: "20px",
                 borderBottomRightRadius: "20px", borderRight: "1px solid black", textAlign: "end"
               }}>
-                <h3>Imports From:</h3>
-                {this.importsFrom && this.importsFrom.columns.map((exp) => {
-                  return (
-                    <div key={exp.id}>
-                      <h4>{exp.name}</h4>
-                      {supportBox(exp.summary)}
-                    </div>);
-                })}
+                <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  {this.importsFrom && this.importsFrom.columns.length === 0 && <p>No tools import from {this.export_tools[this.selected]}</p>}
+                  {this.importsFrom && this.importsFrom.columns.map((exp) => {
+                    return (
+                      <div key={exp.id} style={toolboxDiv}>
+                        <p>{exp.name}</p>
+                        {supportBox(exp.summary)}
+                      </div>);
+                  })}
+                </div>
               </div>
               <div style={{ margin: "10px" }}>
-                <h2>
+                <h2 style={{ whiteSpace: "nowrap" }}>
                   <span className="pt-icon-arrow-right" />
-                  {this.export_tools[this.selected]}
+                  &nbsp;<span>{this.export_tools[this.selected]}</span>&nbsp;
                   <span className="pt-icon-arrow-right" />
                 </h2>
               </div>
-              <div style={{ minWidth: "400px", width: "50%", paddingTop: "20x", paddingBottom: "20px", paddingLeft: "20px", borderTopLeftRadius: "20px", borderBottomLeftRadius: "20px", borderLeft: "1px solid black" }}>
-                <h3>Exports To:</h3>
-                {this.exportsTo && this.exportsTo.columns.map((exp) => {
-                  return (
-                    <div key={exp.id}>
-                      <h4>{exp.name}</h4>
-                      {supportBox(exp.summary)}
-                    </div>);
-                })}
+              <div style={{ minWidth: "400px", width: "50%", paddingTop: "30x", paddingBottom: "20px", paddingLeft: "20px", borderTopLeftRadius: "20px", borderBottomLeftRadius: "20px", borderLeft: "1px solid black" }}>
+                <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
+                <div style={{ display: "flex", flexWrap: "wrap" }}>
+                  {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
+                  {this.exportsTo && this.exportsTo.columns.map((exp) => {
+                    return (
+                      <div key={exp.id} style={toolboxDiv}>
+                        <p>{exp.name}</p>
+                        {supportBox(exp.summary)}
+                      </div>);
+                  })}
+                </div>
               </div>
             </div>
           </div>}
