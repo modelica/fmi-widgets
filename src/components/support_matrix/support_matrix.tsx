@@ -246,7 +246,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                 <div style={{ margin: "10px" }}>
                   <h2 style={{ whiteSpace: "nowrap" }}>
                     <span className="pt-icon-arrow-right" />
-                    &nbsp;<span style={{ textOverflow: "ellipsis", maxWidth: "10em", whiteSpace: "nowrap", overflowX: "hidden", overflowY: "visible", display: "inline-block" }}>{this.export_tools[this.selected]}</span>&nbsp;
+                    &nbsp;<span style={{ textOverflow: "ellipsis", maxWidth: "10em", whiteSpace: "nowrap", overflowX: "hidden", overflowY: "visible", display: "inline-block", height: "1.5em", verticalAlign: "top" }}>{this.export_tools[this.selected]}</span>&nbsp;
                   <span className="pt-icon-arrow-right" />
                   </h2>
                 </div>
