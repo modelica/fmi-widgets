@@ -998,6 +998,13 @@ compression@^1.5.2:
     safe-buffer "5.1.1"
     vary "~1.1.2"
 
+computed-async-mobx@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/computed-async-mobx/-/computed-async-mobx-3.2.0.tgz#efa08a127bf8aff1b44e6afcd5d317a13f7dfe3a"
+  dependencies:
+    mobx "^3.0.0"
+    mobx-utils "^3.0.0"
+
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
@@ -3475,7 +3482,11 @@ mobx-react@^4.3.3:
   dependencies:
     hoist-non-react-statics "^2.3.1"
 
-mobx@^3.3.1:
+mobx-utils@^3.0.0:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/mobx-utils/-/mobx-utils-3.2.1.tgz#44ba6a5b64db1437475217eb630f1f8e1e723323"
+
+mobx@^3.0.0, mobx@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/mobx/-/mobx-3.3.1.tgz#c38fc1a287a0dda3f5d4b85efe1137fedd9dcdf0"
 
