@@ -3,21 +3,36 @@ import './support_matrix.css';
 import { MatrixReport, SupportStatus, RowReport } from 'fmi-database';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
+import { promisedComputed } from 'computed-async-mobx';
 import { Button } from '@blueprintjs/core';
 
-async function queryDetails(): Promise<MatrixReport> {
+const versionKey = "version";
+const variantKey = "variant";
+const platformKey = "platform";
+
+async function queryDetails(version: string | undefined, variant: string | undefined, platform: string | undefined): Promise<MatrixReport> {
+  let qs: { [key: string]: string } = {};
+  if (version) qs[versionKey] = version;
+  if (variant) qs[variantKey] = variant;
+  if (platform) qs[platformKey] = platform;
+
+
   let headers = new Headers({
     "Accept": "application/json",
   });
   headers.set("Accept", "application/json");
 
-  let req = new Request("http://localhost:4000/report/matrix", {
+  let qsstr = Object.keys(qs).map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(qs[k])).join("&");
+
+  let req = new Request(`http://localhost:4000/report/matrix?${qsstr}`, {
     method: "GET",
     headers: headers,
   });
   let resp = await fetch(req);
   return resp.json();
 }
+
+const emptyMatrix: MatrixReport = { exporters: [], importers: [] };
 
 // interface ImportListing {
 //   id: string;
@@ -27,12 +42,20 @@ async function queryDetails(): Promise<MatrixReport> {
 
 @observer
 export class SupportMatrixViewer extends React.Component<{}, {}> {
-  @observable matrix: MatrixReport = { exporters: [], importers: [] };
-  @observable loading = true;
+  @observable matrix2: MatrixReport = emptyMatrix;
+  //@observable loading = true;
   @observable selected: string | null = null;
+  @observable version: "FMI_1.0" | "FMI_2.0" | undefined = undefined;
+  @observable variant: "CoSimulation" | "ModelExchange" | undefined = undefined;
+  @observable platform: "win32" | "win64" | "linux32" | "linux64" | "darwin32" | "darwin64" | "c-code" | undefined = undefined;
+  matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
+    console.log("Computing matrix");
+    return queryDetails(this.version, this.variant, this.platform);
+  });
+  @computed get loading() { return this.matrix.busy; }
   @computed get export_tools(): { [id: string]: string } {
     let ret = {};
-    this.matrix.exporters.forEach((exp) => {
+    this.matrix.get().exporters.forEach((exp) => {
       ret[exp.id] = exp.name;
       exp.columns.forEach((imp) => {
         ret[imp.id] = imp.name;
@@ -42,7 +65,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
   }
   @computed get import_tools(): { [id: string]: string } {
     let ret = {};
-    this.matrix.exporters.forEach((exp) => {
+    this.matrix.get().exporters.forEach((exp) => {
       ret[exp.id] = exp.name;
       exp.columns.forEach((imp) => {
         ret[imp.id] = imp.name;
@@ -53,8 +76,8 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
   @computed get exportsTo(): RowReport | null {
     if (this.selected == null) return null;
 
-    for (let i = 0; i < this.matrix.exporters.length; i++) {
-      if (this.matrix.exporters[i].id === this.selected) return this.matrix.exporters[i];
+    for (let i = 0; i < this.matrix.get().exporters.length; i++) {
+      if (this.matrix.get().exporters[i].id === this.selected) return this.matrix.get().exporters[i];
     }
     // Happens if tool doesn't support export
     return null;
@@ -62,20 +85,28 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
   @computed get importsFrom(): RowReport | null {
     if (this.selected == null) return null;
 
-    for (let i = 0; i < this.matrix.importers.length; i++) {
-      if (this.matrix.importers[i].id === this.selected) return this.matrix.importers[i];
+    for (let i = 0; i < this.matrix.get().importers.length; i++) {
+      if (this.matrix.get().importers[i].id === this.selected) return this.matrix.get().importers[i];
     }
     // Happens if tool doesn't export
     return null;
   }
   constructor(props?: {}, context?: {}) {
     super(props, context);
-    queryDetails().then((r) => {
-      this.matrix = r;
-      this.loading = false;
-    });
+    // queryDetails(undefined, undefined, undefined).then((r) => {
+    //   this.matrix = r;
+    //   this.loading = false;
+    // });
   }
   render() {
+    let whichArrow = (id: string) => {
+      let imports = this.import_tools.hasOwnProperty(id);
+      let exports = this.export_tools.hasOwnProperty(id);
+      if (imports && exports) return <span className="pt-icon-arrows-horizontal" />;
+      if (imports) return <span className="pt-icon-arrow-left" />;
+      if (imports) return <span className="pt-icon-arrow-right" />;
+      return <span className="pt-icon-ban-circle" />;
+    };
     let supportBox = (support: SupportStatus) => (
       <div className="pt-button-group" style={{ marginBottom: "4px" }}>
         <a className="pt-button pt-intent-success" tabIndex={0} role="button">{support.passed}</a>
@@ -90,8 +121,8 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
           <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
             FMI Version
             <div className="pt-select">
-              <select>
-                <option selected={true} value={undefined}>All Versions</option>
+              <select defaultValue={undefined} onChange={(event) => this.version = event.target.value as any}>
+                <option value={undefined}>All Versions</option>
                 <option value="FMI_1.0">FMI 1.0</option>
                 <option value="FMI_2.0">FMI 2.0</option>
               </select>
@@ -100,8 +131,8 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
           <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
             FMI Variant
             <div className="pt-select">
-              <select>
-                <option selected={true} value={undefined}>All Variants</option>
+              <select defaultValue={undefined} onChange={(event) => this.variant = event.target.value as any}>
+                <option value={undefined}>All Variants</option>
                 <option value="CoSimulation">Co-Simulation</option>
                 <option value="ModelExchange">Model Exchange</option>
               </select>
@@ -110,8 +141,8 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
           <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
             Platform
             <div className="pt-select">
-              <select>
-                <option selected={true} value={undefined}>All Platforms</option>
+              <select defaultValue={undefined} onChange={(event) => this.platform = event.target.value as any}>
+                <option value={undefined}>All Platforms</option>
                 <option value="win32">Windows, 32-bit</option>
                 <option value="win64">Windows, 64-bit</option>
                 <option value="linux32">Linux, 32-bit</option>
@@ -128,14 +159,19 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
             {Object.keys(this.export_tools).map((id, ti) => {
               return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>{this.export_tools[id]}</Button>
+                <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                  {this.export_tools[id]}
+                  &nbsp;<small>{whichArrow(id)}</small>
+                </Button>
               </div>;
             })}
           </div>
           {this.selected && <div>
-            <h2>{this.export_tools[this.selected]}</h2>
             <div style={{ margin: 5, display: "flex" }}>
-              <div style={{ minWidth: "400px", width: "50%" }}>
+              <div style={{
+                minWidth: "400px", width: "50%", paddingTop: "20x", paddintBottom: "20px", paddingRight: "20px", borderTopRightRadius: "20px",
+                borderBottomRightRadius: "20px", borderRight: "1px solid black", textAlign: "end"
+              }}>
                 <h3>Imports From:</h3>
                 {this.importsFrom && this.importsFrom.columns.map((exp) => {
                   return (
@@ -145,7 +181,14 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                     </div>);
                 })}
               </div>
-              <div style={{ minWidth: "400px", width: "50%" }}>
+              <div style={{ margin: "10px" }}>
+                <h2>
+                  <span className="pt-icon-arrow-right" />
+                  {this.export_tools[this.selected]}
+                  <span className="pt-icon-arrow-right" />
+                </h2>
+              </div>
+              <div style={{ minWidth: "400px", width: "50%", paddingTop: "20x", paddingBottom: "20px", paddingLeft: "20px", borderTopLeftRadius: "20px", borderBottomLeftRadius: "20px", borderLeft: "1px solid black" }}>
                 <h3>Exports To:</h3>
                 {this.exportsTo && this.exportsTo.columns.map((exp) => {
                   return (
