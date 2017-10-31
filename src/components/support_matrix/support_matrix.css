@@ -1,0 +1,8 @@
+.limited {
+    text-overflow: ellipsis;
+    max-width: 10em;
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow-y: visible;
+    display: inline-block;
+}

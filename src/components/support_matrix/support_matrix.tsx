@@ -31,18 +31,31 @@ async function queryDetails(version: string | undefined, variant: string | undef
   return resp.json();
 }
 
-const supportBox = (support: SupportStatus, title: string, style?: React.CSSProperties) => (
-  <div className="pt-button-group pt-inline">
-    <label style={{ ...(style || {}), marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }}>{title}</label>
-    <a className="pt-button pt-intent-success" tabIndex={0} role="button">{support.passed}</a>
-    <a className="pt-button pt-intent-warning" tabIndex={0} role="button">{support.rejected}</a>
-    <a className="pt-button pt-intent-danger" tabIndex={0} role="button">{support.failed}</a>
+const supportBox = (support: SupportStatus, title: string | undefined, style?: React.CSSProperties) => (
+  <div className="pt-button-group pt-inline" style={style || {}}>
+    {title && <label className="limited" style={{ marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }}>{title}</label>}
+    <a className="pt-button pt-intent-success" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.passed}</a>
+    <a className="pt-button pt-intent-warning" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.rejected}</a>
+    <a className="pt-button pt-intent-danger" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.failed}</a>
   </div>
 );
 
 const emptyMatrix: MatrixReport = { exporters: [], importers: [] };
 
-const toolboxDiv = { textAlign: "center", padding: "4px", borderRadius: "6px", border: "1px solid #cccccc", margin: "2px" };
+function truncate(str: string): string {
+  if (str.length > 12) return str.slice(0, 12) + "...";
+  return str;
+}
+
+const toolboxDiv = {
+  textAlign: "center",
+  padding: "4px",
+  borderRadius: "6px",
+  border: "1px solid #cccccc",
+  margin: "2px",
+  backgroundImage: "linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0))",
+  color: "#182026",
+};
 const importsFromDiv = {
   minWidth: "400px",
   width: "50%",
@@ -148,7 +161,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
     });
 
     return (
-      <div className="Support" style={{ margin: "10px", textOverflow: "ellipsis" }}>
+      <div className="Support" style={{ margin: "10px" }}>
         <div style={{ display: "flex" }}>
           <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
             FMI Version
@@ -199,7 +212,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
                       <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
-                  {this.export_tools[id]}
+                        <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
                       </Button>
                     </div>;
@@ -213,7 +226,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
                       <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
-                  {this.export_tools[id]}
+                        <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
                       </Button>
                     </div>;
@@ -227,7 +240,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
                       <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
-                  {this.export_tools[id]}
+                        <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
                       </Button>
                     </div>;
@@ -254,7 +267,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                 <div style={{ margin: "10px" }}>
                   <h2 style={{ whiteSpace: "nowrap" }}>
                     <span className="pt-icon-arrow-right" />
-                    &nbsp;<span style={{ textOverflow: "ellipsis", maxWidth: "10em", whiteSpace: "nowrap", overflowX: "hidden", overflowY: "visible", display: "inline-block", height: "1.5em", verticalAlign: "top" }}>{this.export_tools[this.selected]}</span>&nbsp;
+                    &nbsp;<span className="limited" style={{ height: "1.5em", verticalAlign: "top" }}>{this.export_tools[this.selected]}</span>&nbsp;
                   <span className="pt-icon-arrow-right" />
                   </h2>
                 </div>
@@ -288,19 +301,23 @@ export class VersionTable extends React.Component<{ report: ColumnReport }, {}> 
     let rows = this.props.report.rows[0];
     return (
       <table>
-        <tr>
-          <td />
-          {rows.cols.map((col, ci) => <th key={ci}>{col.version}</th>)}
-        </tr>
-        {this.props.report.rows.map((row, ri) => {
-          return (
-            <tr key={ri}>
-              <th>{row.version}</th>
-              {row.cols.map((col, ci) => {
-                return <td key={ci}>{supportBox(col.status, "", { width: "100%" })}</td>;
-              })}
-            </tr>);
-        })}
+        <tbody>
+          <tr>
+            <td />
+            {rows.cols.map((col, ci) => <th key={ci}>{col.version}</th>)}
+          </tr>
+          {this.props.report.rows.map((row, ri) => {
+            return (
+              <tr key={ri}>
+                <th>{row.version}</th>
+                {row.cols.map((col, ci) => {
+                  return <td key={ci}>
+                    {col.status.passed === 0 && col.status.rejected === 0 && col.status.failed === 0 ? null : supportBox(col.status, undefined, { display: "flex" })}
+                  </td>;
+                })}
+              </tr>);
+          })}
+        </tbody>
       </table>);
   }
 }
