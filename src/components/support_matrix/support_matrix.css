@@ -6,3 +6,7 @@
     overflow-y: visible;
     display: inline-block;
 }
+
+.pt-spinner.big-spinner:not(.pt-svg-spinner) {
+    width: 300px;
+}
