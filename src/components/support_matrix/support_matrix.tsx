@@ -1,10 +1,11 @@
 import * as React from 'react';
 import './support_matrix.css';
-import { MatrixReport, SupportStatus, RowReport, ColumnReport } from 'fmi-database';
+import { MatrixReport, RowReport } from 'fmi-database';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
-import { Button, ProgressBar, Tooltip } from '@blueprintjs/core';
+import { Button, Spinner, Tooltip, Classes, Intent } from '@blueprintjs/core';
+import { VersionTable, supportBox } from './version_table';
 
 const versionKey = "version";
 const variantKey = "variant";
@@ -30,15 +31,6 @@ async function queryDetails(version: string | undefined, variant: string | undef
   let resp = await fetch(req);
   return resp.json();
 }
-
-const supportBox = (support: SupportStatus, title: string | undefined, style?: React.CSSProperties) => (
-  <div className="pt-button-group pt-inline" style={style || {}}>
-    {title && <label className="limited" style={{ marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }}>{title}</label>}
-    <a className="pt-button pt-intent-success" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.passed}</a>
-    <a className="pt-button pt-intent-warning" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.rejected}</a>
-    <a className="pt-button pt-intent-danger" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.failed}</a>
-  </div>
-);
 
 const emptyMatrix: MatrixReport = { exporters: [], importers: [] };
 
@@ -67,6 +59,16 @@ const importsFromDiv = {
   borderRight: "1px solid black",
   textAlign: "end"
 };
+const exportsToDiv = {
+  minWidth: "400px",
+  width: "50%",
+  paddingTop: "30x",
+  paddingBottom: "20px",
+  paddingLeft: "20px",
+  borderTopLeftRadius: "20px",
+  borderBottomLeftRadius: "20px",
+  borderLeft: "1px solid black"
+};
 // interface ImportListing {
 //   id: string;
 //   name: string;
@@ -76,13 +78,11 @@ const flexBasis = "auto";
 
 @observer
 export class SupportMatrixViewer extends React.Component<{}, {}> {
-  @observable matrix2: MatrixReport = emptyMatrix;
   @observable selected: string | null = null;
   @observable version: string | undefined = undefined;
   @observable variant: string | undefined = undefined;
   @observable platform: string | undefined = undefined;
   matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
-    console.log("Computing matrix");
     return queryDetails(this.version, this.variant, this.platform);
   });
   @computed get loading() { return this.matrix.busy; }
@@ -167,7 +167,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
             FMI Version
             <div className="pt-select">
               <select defaultValue={undefined} onChange={(event) => this.version = event.target.value as string}>
-                <option value={undefined}>All Versions</option>
+                <option value="">All Versions</option>
                 <option value="FMI_1.0">FMI 1.0</option>
                 <option value="FMI_2.0">FMI 2.0</option>
               </select>
@@ -177,7 +177,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
             FMI Variant
             <div className="pt-select">
               <select defaultValue={undefined} onChange={(event) => this.variant = event.target.value}>
-                <option value={undefined}>All Variants</option>
+                <option value="">All Variants</option>
                 <option value="CoSimulation">Co-Simulation</option>
                 <option value="ModelExchange">Model Exchange</option>
               </select>
@@ -187,7 +187,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
             Platform
             <div className="pt-select">
               <select defaultValue={undefined} onChange={(event) => this.platform = event.target.value}>
-                <option value={undefined}>All Platforms</option>
+                <option value="">All Platforms</option>
                 <option value="win32">Windows, 32-bit</option>
                 <option value="win64">Windows, 64-bit</option>
                 <option value="linux32">Linux, 32-bit</option>
@@ -199,12 +199,18 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
             </div>
           </label>
         </div>
-        {this.loading && <div style={{ margin: "10px" }}><ProgressBar /></div>}
+        {this.loading && <div style={{ margin: "10px" }}>
+          <div style={{ width: "100%", display: "flex", justifyContent: "space-around" }}>
+            <div style={{ flexGrid: 1 }}>
+              <Spinner className={"big-spinner " + Classes.LARGE} intent={Intent.SUCCESS} />
+            </div>
+          </div>
+        </div>}
         {!this.loading && ekeys.length === 0 && <p>No tools match your filter parameters</p>}
         {
           !this.loading && ekeys.length > 0 && <div>
             <p>Select a tool to find out more about its FMI capabilities...</p>
-            <div style={{ display: "flex" }}>
+            <div style={{ display: "flex", marginBottom: "30px" }}>
               <div style={{ flexGrow: 1, flexBasis: flexBasis, textAlign: "center", borderRight: "1px dashed black", paddingRight: "5px", marginRight: "5px" }}>
                 <h4>Import only</h4>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
@@ -249,7 +255,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
               </div>
             </div>
             {this.selected && ekeys.indexOf(this.selected) >= 0 && <div>
-              <div style={{ marginTop: 20, margin: 5, display: "flex" }}>
+              <div style={{ marginTop: 20, margin: 5, display: "flex", alignItems: "flex-start" }}>
                 <div style={importsFromDiv}>
                   <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
                   <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -258,7 +264,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                       return (
                         <Tooltip key={imp.id} content={<VersionTable report={imp} />}>
                           <div style={toolboxDiv}>
-                            {supportBox(imp.summary, imp.name)}
+                            {supportBox(imp.summary, imp.name, {}, () => this.selected = imp.id)}
                           </div>
                         </Tooltip>);
                     })}
@@ -267,11 +273,11 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                 <div style={{ margin: "10px" }}>
                   <h2 style={{ whiteSpace: "nowrap" }}>
                     <span className="pt-icon-arrow-right" />
-                    &nbsp;<span className="limited" style={{ height: "1.5em", verticalAlign: "top" }}>{this.export_tools[this.selected]}</span>&nbsp;
+                    &nbsp;<span style={{ height: "1.5em", verticalAlign: "top" }}>{truncate(this.export_tools[this.selected])}</span>&nbsp;
                   <span className="pt-icon-arrow-right" />
                   </h2>
                 </div>
-                <div style={{ minWidth: "400px", width: "50%", paddingTop: "30x", paddingBottom: "20px", paddingLeft: "20px", borderTopLeftRadius: "20px", borderBottomLeftRadius: "20px", borderLeft: "1px solid black" }}>
+                <div style={exportsToDiv}>
                   <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
                   <div style={{ display: "flex", flexWrap: "wrap" }}>
                     {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
@@ -279,7 +285,7 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                       return (
                         <Tooltip key={exp.id} content={<VersionTable report={exp} />}>
                           <div key={exp.id} style={toolboxDiv}>
-                            {supportBox(exp.summary, exp.name)}
+                            {supportBox(exp.summary, exp.name, {}, () => this.selected = exp.id)}
                           </div>
                         </Tooltip>);
                     })}
@@ -287,37 +293,10 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
                 </div>
               </div>
             </div>}
+            {/* <SupportGraph matrix={this.matrix.get()} /> */}
           </div>
         }
       </div >
     );
-  }
-}
-
-@observer
-export class VersionTable extends React.Component<{ report: ColumnReport }, {}> {
-  render() {
-    if (this.props.report.rows.length === 0) return null;
-    let rows = this.props.report.rows[0];
-    return (
-      <table>
-        <tbody>
-          <tr>
-            <td />
-            {rows.cols.map((col, ci) => <th key={ci}>{col.version}</th>)}
-          </tr>
-          {this.props.report.rows.map((row, ri) => {
-            return (
-              <tr key={ri}>
-                <th>{row.version}</th>
-                {row.cols.map((col, ci) => {
-                  return <td key={ci}>
-                    {col.status.passed === 0 && col.status.rejected === 0 && col.status.failed === 0 ? null : supportBox(col.status, undefined, { display: "flex" })}
-                  </td>;
-                })}
-              </tr>);
-          })}
-        </tbody>
-      </table>);
   }
 }
