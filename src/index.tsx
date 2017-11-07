@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { SupportMatrixViewer } from './components';
-import registerServiceWorker from './registerServiceWorker';
 import './index.css';
 
 let elementMap = {
@@ -14,5 +13,3 @@ Object.keys(elementMap).forEach((name) => {
     ReactDOM.render(elementMap[name], elem);
   }
 });
-
-registerServiceWorker();
