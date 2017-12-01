@@ -1,7 +1,10 @@
 {
   "name": "@modelica/fmi-widgets",
   "version": "0.1.0",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xogeny/fmi-widgets.git"
+  },
   "dependencies": {
     "@blueprintjs/core": "^1.32.0",
     "@modelica/fmi-data": "^0.5.1",
