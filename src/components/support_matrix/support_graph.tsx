@@ -1,4 +1,4 @@
-import { MatrixReport } from 'fmi-database';
+import { MatrixReport } from '@modelica/fmi-data';
 import { observer } from 'mobx-react';
 import * as React from 'react';
 
@@ -55,4 +55,3 @@ export class SupportGraph extends React.Component<{ matrix: MatrixReport }, {}> 
         );
     }
 }
-

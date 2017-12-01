@@ -1,38 +1,14 @@
 import * as React from 'react';
 import './support_matrix.css';
-import { MatrixReport, RowReport } from 'fmi-database';
+import { MatrixReport, RowReport } from '@modelica/fmi-data';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
 import { Button, Spinner, Tooltip, Classes, Intent } from '@blueprintjs/core';
 import { VersionTable, supportBox } from './version_table';
+import { QueryFunction } from '../data';
 
-const versionKey = "version";
-const variantKey = "variant";
-const platformKey = "platform";
-
-async function queryDetails(version: string | undefined, variant: string | undefined, platform: string | undefined): Promise<MatrixReport> {
-  let qs: { [key: string]: string } = {};
-  if (version) qs[versionKey] = version;
-  if (variant) qs[variantKey] = variant;
-  if (platform) qs[platformKey] = platform;
-
-  let headers = new Headers({
-    "Accept": "application/json",
-  });
-  headers.set("Accept", "application/json");
-
-  let qsstr = Object.keys(qs).map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(qs[k])).join("&");
-
-  let req = new Request(`http://localhost:4000/report/matrix?${qsstr}`, {
-    method: "GET",
-    headers: headers,
-  });
-  let resp = await fetch(req);
-  return resp.json();
-}
-
-const emptyMatrix: MatrixReport = { exporters: [], importers: [] };
+const emptyMatrix: MatrixReport = { tools: [], exporters: [], importers: [] };
 
 function truncate(str: string): string {
   if (str.length > 12) return str.slice(0, 12) + "...";
@@ -76,14 +52,18 @@ const exportsToDiv = {
 // }
 const flexBasis = "auto";
 
+export interface SupportMatrixProps {
+  query: QueryFunction;
+}
+
 @observer
-export class SupportMatrixViewer extends React.Component<{}, {}> {
+export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}> {
   @observable selected: string | null = null;
   @observable version: string | undefined = undefined;
   @observable variant: string | undefined = undefined;
   @observable platform: string | undefined = undefined;
   matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
-    return queryDetails(this.version, this.variant, this.platform);
+    return this.props.query(this.version, this.variant, this.platform);
   });
   @computed get loading() { return this.matrix.busy; }
   @computed get export_tools(): { [id: string]: string } {
@@ -124,12 +104,8 @@ export class SupportMatrixViewer extends React.Component<{}, {}> {
     // Happens if tool doesn't export
     return null;
   }
-  constructor(props?: {}, context?: {}) {
+  constructor(props?: SupportMatrixProps, context?: {}) {
     super(props, context);
-    // queryDetails(undefined, undefined, undefined).then((r) => {
-    //   this.matrix = r;
-    //   this.loading = false;
-    // });
   }
   render() {
     let leftArrow = (id: string) => {

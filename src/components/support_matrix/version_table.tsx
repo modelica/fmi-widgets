@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
-import { ColumnReport, SupportStatus } from 'fmi-database';
+import { ColumnReport, SupportStatus } from '@modelica/fmi-data';
 
 // TODO: Make into full blow component...?
 export const supportBox = (support: SupportStatus, title: string | undefined, style?: React.CSSProperties, onClick?: () => void) => (
