@@ -15,9 +15,9 @@
     tether "^1.4"
     tslib "^1.5.0"
 
-"@modelica/fmi-data@^0.5.1":
-  version "0.5.3"
-  resolved "https://registry.npmjs.org/@modelica/fmi-data/-/fmi-data-0.5.3.tgz#4c3547c929c3f9784c2a64c58cad3b76c5cf1786"
+"@modelica/fmi-data@0.11.1":
+  version "0.11.1"
+  resolved "https://registry.npmjs.org/@modelica/fmi-data/-/fmi-data-0.11.1.tgz#1362473251cb52df5d67bf8a55c2d5d28f0f3a89"
   dependencies:
     typescript "^2.6.2"
 

@@ -5,10 +5,17 @@ const versionKey = "version";
 const variantKey = "variant";
 const platformKey = "platform";
 
-// For testing, you can use the GitHub raw links...
-const toolsURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/tools.json";
+// For production, we use these links
+let toolsURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/tools.json";
 // const fmusURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/fmus.json";
-const xcURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/xc_results.json";
+let xcURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/xc_results.json";
+
+if (process.env.NODE_ENV === 'development') {
+    // For production, we use these links
+    console.log("Using development data");
+    toolsURI = "http://localhost:3000/sample_data/tools.json";
+    xcURI = "http://localhost:3000/sample_data/xc_results.json";
+}
 
 // For production, we should use data pushed to the FMI web site.
 
