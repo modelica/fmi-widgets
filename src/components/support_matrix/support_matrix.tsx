@@ -18,7 +18,7 @@ function truncate(str: string): string {
 function toolboxDivStyle(support: SupportStatus) {
   if (support.passed > 3 && support.rejected === 0 && support.failed === 0) return { ...toolboxDiv, backgroundColor: Colors.FOREST5 };
   if (support.failed > 0 && support.rejected === 0 && support.passed === 0) return { ...toolboxDiv, backgroundColor: Colors.RED5 };
-  return toolboxDiv;
+  return { ...toolboxDiv, backgroundColor: Colors.GRAY5 };
 }
 
 const toolboxDiv = {
@@ -140,6 +140,12 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
       if (imports && exports) both.push(key);
       if (imports && !exports) io.push(key);
       if (exports && !imports) eo.push(key);
+    });
+
+    this.matrix.get().tools.forEach((tool) => {
+      if (io.indexOf(tool) === -1 && eo.indexOf(tool) === -1 && both.indexOf(tool) === -1) {
+        console.log("Tool " + tool + " provides no cross-check data");
+      }
     });
 
     return (
