@@ -30,7 +30,7 @@ export class SupportGraph extends React.Component<{ matrix: MatrixReport }, {}> 
 
     constructor(props?: { matrix: MatrixReport }, context?: {}) {
         super(props, context);
-        this.props.matrix.exporters.forEach((row, ri) => {
+        this.props.matrix.importers.forEach((row, ri) => {
             this.graph.nodes.push({
                 id: row.id,
                 label: ri.toFixed(0),

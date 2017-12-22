@@ -1,6 +1,6 @@
 import * as React from 'react';
 import './support_matrix.css';
-import { MatrixReport, RowReport, SupportStatus } from '@modelica/fmi-data';
+import { MatrixReport, RowReport, SupportStatus, Status } from '@modelica/fmi-data';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
@@ -74,7 +74,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
   @computed get loading() { return this.matrix.busy; }
   @computed get export_tools(): { [id: string]: string } {
     let ret = {};
-    this.matrix.get().exporters.forEach((exp) => {
+    this.matrix.get().importers.forEach((exp) => {
       ret[exp.id] = exp.name;
       exp.columns.forEach((imp) => {
         ret[imp.id] = imp.name;
@@ -84,7 +84,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
   }
   @computed get import_tools(): { [id: string]: string } {
     let ret = {};
-    this.matrix.get().exporters.forEach((exp) => {
+    this.matrix.get().importers.forEach((exp) => {
       ret[exp.id] = exp.name;
       exp.columns.forEach((imp) => {
         ret[imp.id] = imp.name;
@@ -95,8 +95,8 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
   @computed get exportsTo(): RowReport | null {
     if (this.selected == null) return null;
 
-    for (let i = 0; i < this.matrix.get().exporters.length; i++) {
-      if (this.matrix.get().exporters[i].id === this.selected) return this.matrix.get().exporters[i];
+    for (let i = 0; i < this.matrix.get().importers.length; i++) {
+      if (this.matrix.get().importers[i].id === this.selected) return this.matrix.get().importers[i];
     }
     // Happens if tool doesn't support export
     return null;
@@ -110,6 +110,43 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
     // Happens if tool doesn't export
     return null;
   }
+
+  supportLevel(tool: string, exp: boolean): Status {
+    // If cross-check data...green
+    let mat = this.matrix.get();
+
+    if (exp) {
+      for (let i = 0; i < mat.exporters.length; i++) {
+        let exporter = mat.exporters[i];
+        if (exporter.id === tool) {
+          if (exporter.columns.length > 0) return Status.CrossChecked;
+          return exporter.best;
+        }
+      }
+      return Status.Unsupported;
+    } else {
+      for (let i = 0; i < mat.importers.length; i++) {
+        let importer = mat.importers[i];
+        if (importer.id === tool) {
+          if (importer.columns.length > 0) return Status.CrossChecked;
+          return importer.best;
+        }
+      }
+      return Status.Unsupported;
+    }
+  }
+
+  supportColor(support: Status): string {
+    switch (support) {
+      case Status.Available:
+        return Colors.ORANGE5;
+      case Status.CrossChecked:
+        return Colors.FOREST5;
+      default:
+        return Colors.GRAY5;
+    }
+  }
+
   constructor(props?: SupportMatrixProps, context?: {}) {
     super(props, context);
   }
@@ -204,7 +241,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {io.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button style={{ width: "100%", backgroundColor: this.supportColor(this.supportLevel(id, false)) }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -232,7 +269,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {eo.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button style={{ width: "100%", backgroundColor: this.supportColor(this.supportLevel(id, true)) }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
