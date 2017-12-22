@@ -1,10 +1,10 @@
 import * as React from 'react';
 import './support_matrix.css';
-import { MatrixReport, RowReport } from '@modelica/fmi-data';
+import { MatrixReport, RowReport, SupportStatus } from '@modelica/fmi-data';
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
-import { Button, Spinner, Tooltip, Classes, Intent } from '@blueprintjs/core';
+import { Button, Spinner, Tooltip, Classes, Intent, Colors } from '@blueprintjs/core';
 import { VersionTable, supportBox } from './version_table';
 import { QueryFunction } from '../data';
 
@@ -13,6 +13,12 @@ const emptyMatrix: MatrixReport = { tools: [], exporters: [], importers: [] };
 function truncate(str: string): string {
   if (str.length > 12) return str.slice(0, 12) + "...";
   return str;
+}
+
+function toolboxDivStyle(support: SupportStatus) {
+  if (support.passed > 3 && support.rejected === 0 && support.failed === 0) return { ...toolboxDiv, backgroundColor: Colors.FOREST5 };
+  if (support.failed > 0 && support.rejected === 0 && support.passed === 0) return { ...toolboxDiv, backgroundColor: Colors.RED5 };
+  return toolboxDiv;
 }
 
 const toolboxDiv = {
@@ -192,7 +198,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {io.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -206,7 +212,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {both.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -220,7 +226,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {eo.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%" }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -239,7 +245,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                     {this.importsFrom && this.importsFrom.columns.map((imp) => {
                       return (
                         <Tooltip key={imp.id} content={<VersionTable report={imp} />}>
-                          <div style={toolboxDiv}>
+                          <div style={toolboxDivStyle(imp.summary)}>
                             {supportBox(imp.summary, imp.name, {}, () => this.selected = imp.id)}
                           </div>
                         </Tooltip>);
@@ -260,7 +266,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                     {this.exportsTo && this.exportsTo.columns.map((exp) => {
                       return (
                         <Tooltip key={exp.id} content={<VersionTable report={exp} />}>
-                          <div key={exp.id} style={toolboxDiv}>
+                          <div key={exp.id} style={toolboxDivStyle(exp.summary)}>
                             {supportBox(exp.summary, exp.name, {}, () => this.selected = exp.id)}
                           </div>
                         </Tooltip>);

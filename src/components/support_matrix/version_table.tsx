@@ -3,14 +3,17 @@ import { observer } from 'mobx-react';
 import { ColumnReport, SupportStatus } from '@modelica/fmi-data';
 
 // TODO: Make into full blow component...?
-export const supportBox = (support: SupportStatus, title: string | undefined, style?: React.CSSProperties, onClick?: () => void) => (
-    <div className="pt-button-group pt-inline" style={style || {}}>
-        {title && <label className="limited" style={{ marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }} onClick={onClick}>{title}</label>}
-        <a className="pt-button pt-intent-success" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.passed}</a>
-        <a className="pt-button pt-intent-warning" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.rejected}</a>
-        <a className="pt-button pt-intent-danger" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.failed}</a>
-    </div>
-);
+export const supportBox = (support: SupportStatus, title: string | undefined, base?: React.CSSProperties, onClick?: () => void) => {
+    let classes = ["pt-button-group", "pt-inline"];
+    let style = base ? { ...base } : {};
+    return (
+        <div className={classes.join(" ")} style={style} >
+            {title && <label className="limited" style={{ marginTop: "auto", marginBottom: "auto", marginLeft: "5px", marginRight: "5px" }} onClick={onClick}>{title}</label>}
+            < a className="pt-button pt-intent-success" style={{ flexGrow: 1 }} tabIndex={0} role="button" > {support.passed}</a>
+            <a className="pt-button pt-intent-warning" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.rejected}</a>
+            <a className="pt-button pt-intent-danger" style={{ flexGrow: 1 }} tabIndex={0} role="button">{support.failed}</a>
+        </div >);
+};
 
 @observer
 export class VersionTable extends React.Component<{ report: ColumnReport }, {}> {
