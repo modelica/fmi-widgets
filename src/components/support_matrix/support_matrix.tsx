@@ -4,7 +4,7 @@ import { MatrixReport, RowReport, SupportStatus, Status } from '@modelica/fmi-da
 import { observer } from 'mobx-react';
 import { observable, computed } from 'mobx';
 import { promisedComputed } from 'computed-async-mobx';
-import { Button, Spinner, Tooltip, Classes, Intent, Colors } from '@blueprintjs/core';
+import { Button, Spinner, Tooltip, Classes, Intent, Colors, Overlay, Position } from '@blueprintjs/core';
 import { VersionTable, supportBox } from './version_table';
 import { QueryFunction } from '../data';
 
@@ -241,7 +241,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {io.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%", backgroundColor: this.supportColor(this.supportLevel(id, false)) }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button className="pt-small" style={{ width: "100%", backgroundColor: this.supportColor(this.supportLevel(id, false)) }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -255,7 +255,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {both.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button className="pt-small" style={{ width: "100%", backgroundColor: Colors.FOREST5 }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -269,7 +269,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                   {eo.map((id, ti) => {
                     return <div key={id} style={{ margin: 2, flexGrow: 1, textAlign: "center" }}>
-                      <Button style={{ width: "100%", backgroundColor: this.supportColor(this.supportLevel(id, true)) }} active={this.selected === id} onClick={() => this.selected = id}>
+                      <Button className="pt-small" style={{ width: "100%", backgroundColor: this.supportColor(this.supportLevel(id, true)) }} active={this.selected === id} onClick={() => this.selected = id}>
                         <small>{leftArrow(id)}</small>&nbsp;
                         <span>{truncate(this.export_tools[id])}</span>
                         &nbsp;<small>{rightArrow(id)}</small>
@@ -279,45 +279,50 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                 </div>
               </div>
             </div>
-            {this.selected && ekeys.indexOf(this.selected) >= 0 && <div>
-              <div style={{ marginTop: 20, margin: 5, display: "flex", alignItems: "flex-start" }}>
-                <div style={importsFromDiv}>
-                  <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
-                  <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                    {this.importsFrom && this.importsFrom.columns.length === 0 && <p>No tools import from {this.export_tools[this.selected]}</p>}
-                    {this.importsFrom && this.importsFrom.columns.map((imp) => {
-                      return (
-                        <Tooltip key={imp.id} content={<VersionTable report={imp} />}>
-                          <div style={toolboxDivStyle(imp.summary)}>
-                            {supportBox(imp.summary, imp.name, {}, () => this.selected = imp.id)}
-                          </div>
-                        </Tooltip>);
-                    })}
-                  </div>
-                </div>
-                <div style={{ margin: "10px" }}>
-                  <h2 style={{ whiteSpace: "nowrap" }}>
-                    <span className="pt-icon-arrow-right" />
-                    &nbsp;<span style={{ height: "1.5em", verticalAlign: "top" }}>{truncate(this.export_tools[this.selected])}</span>&nbsp;
+            <Overlay className={Classes.OVERLAY_SCROLL_CONTAINER} isOpen={!!(this.selected && ekeys.indexOf(this.selected) >= 0)} onClose={() => this.selected = null} lazy={true} transitionDuration={500}>
+              <div style={{ width: "80%", left: "10%", right: "10%", marginTop: "10vh" }}>
+                {this.selected && ekeys.indexOf(this.selected) >= 0 && <div>
+                  <div style={{ marginTop: 20, margin: 5, display: "flex", alignItems: "flex-start", backgroundColor: "white" }}>
+                    <div style={importsFromDiv}>
+                      <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
+                      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        {this.importsFrom && this.importsFrom.columns.length === 0 && <p>No tools import from {this.export_tools[this.selected]}</p>}
+                        {this.importsFrom && this.importsFrom.columns.map((imp) => {
+                          return (
+                            <Tooltip position={Position.RIGHT} key={imp.id} content={<VersionTable report={imp} />}>
+                              <div style={toolboxDivStyle(imp.summary)}>
+                                {supportBox(imp.summary, imp.name, {}, () => this.selected = imp.id)}
+                              </div>
+                            </Tooltip>);
+                        })}
+                      </div>
+                    </div>
+                    <div style={{ margin: "10px" }}>
+                      <h2 style={{ whiteSpace: "nowrap" }}>
+                        <span className="pt-icon-arrow-right" />
+                        &nbsp;<span style={{ height: "1.5em", verticalAlign: "top" }}>{truncate(this.export_tools[this.selected])}</span>&nbsp;
                   <span className="pt-icon-arrow-right" />
-                  </h2>
-                </div>
-                <div style={exportsToDiv}>
-                  <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
-                  <div style={{ display: "flex", flexWrap: "wrap" }}>
-                    {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
-                    {this.exportsTo && this.exportsTo.columns.map((exp) => {
-                      return (
-                        <Tooltip key={exp.id} content={<VersionTable report={exp} />}>
-                          <div key={exp.id} style={toolboxDivStyle(exp.summary)}>
-                            {supportBox(exp.summary, exp.name, {}, () => this.selected = exp.id)}
-                          </div>
-                        </Tooltip>);
-                    })}
+                      </h2>
+                    </div>
+                    <div style={exportsToDiv}>
+                      <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
+                      <div style={{ display: "flex", flexWrap: "wrap" }}>
+                        {this.exportsTo && this.exportsTo.columns.length === 0 && <p>No tools export to {this.export_tools[this.selected]}</p>}
+                        {this.exportsTo && this.exportsTo.columns.map((exp) => {
+                          return (
+                            <Tooltip position={Position.LEFT} key={exp.id} content={<VersionTable report={exp} />}>
+                              <div key={exp.id} style={toolboxDivStyle(exp.summary)}>
+                                {supportBox(exp.summary, exp.name, {}, () => this.selected = exp.id)}
+                              </div>
+                            </Tooltip>);
+                        })}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </div>}
               </div>
-            </div>}
+            </Overlay>
+
             {/* <SupportGraph matrix={this.matrix.get()} /> */}
           </div>
         }
