@@ -33,19 +33,19 @@ const rowDivStyle: React.CSSProperties = {
 export class ZoomView extends React.Component<ZoomViewProps, {}> {
     render() {
         let open = !!(this.props.viewState.selected && this.props.tools.indexOf(this.props.viewState.selected) >= 0);
-        let imports = this.props.viewState.importsFrom ? this.props.viewState.importsFrom.columns : [];
-        let exports = this.props.viewState.exportsTo ? this.props.viewState.exportsTo.columns : [];
+        let imports = this.props.viewState.importsFromSelected ? this.props.viewState.importsFromSelected.columns : [];
+        let exports = this.props.viewState.exportsToSelected ? this.props.viewState.exportsToSelected.columns : [];
 
         let importReport = (id: string) => {
-            if (this.props.viewState.importsFrom) {
-                return this.props.viewState.importsFrom.columns.find(x => x.id === id);
+            if (this.props.viewState.importsFromSelected) {
+                return this.props.viewState.importsFromSelected.columns.find(x => x.id === id);
             }
             return null;
         };
 
         let exportReport = (id: string) => {
-            if (this.props.viewState.exportsTo) {
-                return this.props.viewState.exportsTo.columns.find(x => x.id === id);
+            if (this.props.viewState.exportsToSelected) {
+                return this.props.viewState.exportsToSelected.columns.find(x => x.id === id);
             }
             return null;
         };
