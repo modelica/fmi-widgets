@@ -4,129 +4,125 @@ import { ViewState } from "./view_state";
 import { observer } from "mobx-react";
 import { toolboxDivStyle, importsFromDiv, exportsToDiv } from "./style";
 import { VersionTable, supportBox } from "./version_table";
-import { truncate } from "../utils";
+import { ButtonStack, Justification } from "./stack";
 
 export interface ZoomViewProps {
     viewState: ViewState;
-    ekeys: string[];
+    tools: string[];
 }
+
+const backgrounDivStyle: React.CSSProperties = {
+    backgroundColor: "white",
+};
+
+const columnDivStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "row",
+    paddingLeft: 5,
+    paddingRight: 5,
+};
+
+const rowDivStyle: React.CSSProperties = {
+    paddingTop: 20,
+    paddingBottom: 10,
+    display: "flex",
+    flexDirection: "column",
+};
 
 @observer
 export class ZoomView extends React.Component<ZoomViewProps, {}> {
     render() {
+        let open = !!(this.props.viewState.selected && this.props.tools.indexOf(this.props.viewState.selected) >= 0);
+        let imports = this.props.viewState.importsFrom ? this.props.viewState.importsFrom.columns : [];
+        let exports = this.props.viewState.exportsTo ? this.props.viewState.exportsTo.columns : [];
+
+        let importReport = (id: string) => {
+            if (this.props.viewState.importsFrom) {
+                return this.props.viewState.importsFrom.columns.find(x => x.id === id);
+            }
+            return null;
+        };
+
+        let exportReport = (id: string) => {
+            if (this.props.viewState.exportsTo) {
+                return this.props.viewState.exportsTo.columns.find(x => x.id === id);
+            }
+            return null;
+        };
+
+        let importLabel = (id: string): JSX.Element | null => {
+            let imp = importReport(id);
+            if (!imp) return null;
+            return (
+                <Tooltip position={Position.RIGHT} key={imp.id} content={<VersionTable report={imp} />}>
+                    <div style={toolboxDivStyle(imp.summary)}>
+                        {supportBox(imp.summary, imp.name, {}, () => (this.props.viewState.selected = id))}
+                    </div>
+                </Tooltip>
+            );
+        };
+
+        let exportLabel = (id: string): JSX.Element | null => {
+            let exp = exportReport(id);
+            if (!exp) return null;
+            return (
+                <Tooltip position={Position.RIGHT} key={exp.id} content={<VersionTable report={exp} />}>
+                    <div style={toolboxDivStyle(exp.summary)}>
+                        {supportBox(exp.summary, exp.name, {}, () => (this.props.viewState.selected = id))}
+                    </div>
+                </Tooltip>
+            );
+        };
+
+        let tool = this.props.viewState.selected
+            ? this.props.viewState.export_tools[this.props.viewState.selected]
+            : "";
+
         return (
             <Overlay
                 className={Classes.OVERLAY_SCROLL_CONTAINER}
-                isOpen={
-                    !!(this.props.viewState.selected && this.props.ekeys.indexOf(this.props.viewState.selected) >= 0)
-                }
+                isOpen={open}
                 onClose={() => (this.props.viewState.selected = null)}
                 lazy={true}
                 transitionDuration={500}
             >
                 <div style={{ width: "80%", left: "10%", right: "10%", marginTop: "10vh" }}>
-                    {this.props.viewState.selected &&
-                        this.props.ekeys.indexOf(this.props.viewState.selected) >= 0 && (
-                            <div>
-                                <div
-                                    style={{
-                                        marginTop: 20,
-                                        margin: 5,
-                                        display: "flex",
-                                        alignItems: "flex-start",
-                                        backgroundColor: "white",
-                                    }}
-                                >
-                                    <div style={importsFromDiv}>
-                                        <h4 style={{ paddingTop: "10px" }}>Imports From:</h4>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                flexWrap: "wrap",
-                                                justifyContent: "flex-end",
-                                            }}
-                                        >
-                                            {this.props.viewState.importsFrom &&
-                                                this.props.viewState.importsFrom.columns.length === 0 && (
-                                                    <p>
-                                                        No tools import from{" "}
-                                                        {
-                                                            this.props.viewState.export_tools[
-                                                                this.props.viewState.selected
-                                                            ]
-                                                        }
-                                                    </p>
-                                                )}
-                                            {this.props.viewState.importsFrom &&
-                                                this.props.viewState.importsFrom.columns.map(imp => {
-                                                    return (
-                                                        <Tooltip
-                                                            position={Position.RIGHT}
-                                                            key={imp.id}
-                                                            content={<VersionTable report={imp} />}
-                                                        >
-                                                            <div style={toolboxDivStyle(imp.summary)}>
-                                                                {supportBox(
-                                                                    imp.summary,
-                                                                    imp.name,
-                                                                    {},
-                                                                    () => (this.props.viewState.selected = imp.id),
-                                                                )}
-                                                            </div>
-                                                        </Tooltip>
-                                                    );
-                                                })}
-                                        </div>
+                    <div style={backgrounDivStyle}>
+                        <div style={rowDivStyle}>
+                            <h1 style={{ textAlign: "center" }}>{tool}</h1>
+                            <div style={columnDivStyle}>
+                                <div style={importsFromDiv}>
+                                    <h4 style={{ paddingTop: "10px" }}>{tool} imports FMUs from:</h4>
+                                    <div>
+                                        {imports.length === 0 && <p>No tools</p>}
+                                        <ButtonStack
+                                            ids={imports.map(imp => imp.id)}
+                                            viewState={this.props.viewState}
+                                            style={id => ({})}
+                                            intent="none"
+                                            justification={Justification.RaggedLeft}
+                                            renderLabel={importLabel}
+                                        />
                                     </div>
-                                    <div style={{ margin: "10px" }}>
-                                        <h2 style={{ whiteSpace: "nowrap" }}>
-                                            <span className="pt-icon-arrow-right" />
-                                            &nbsp;<span style={{ height: "1.5em", verticalAlign: "top" }}>
-                                                {truncate(
-                                                    this.props.viewState.export_tools[this.props.viewState.selected],
-                                                )}
-                                            </span>&nbsp;
-                                            <span className="pt-icon-arrow-right" />
-                                        </h2>
-                                    </div>
-                                    <div style={exportsToDiv}>
-                                        <h4 style={{ paddingTop: "10px" }}>Exports To:</h4>
-                                        <div style={{ display: "flex", flexWrap: "wrap" }}>
-                                            {this.props.viewState.exportsTo &&
-                                                this.props.viewState.exportsTo.columns.length === 0 && (
-                                                    <p>
-                                                        No tools export to{" "}
-                                                        {
-                                                            this.props.viewState.export_tools[
-                                                                this.props.viewState.selected
-                                                            ]
-                                                        }
-                                                    </p>
-                                                )}
-                                            {this.props.viewState.exportsTo &&
-                                                this.props.viewState.exportsTo.columns.map(exp => {
-                                                    return (
-                                                        <Tooltip
-                                                            position={Position.LEFT}
-                                                            key={exp.id}
-                                                            content={<VersionTable report={exp} />}
-                                                        >
-                                                            <div key={exp.id} style={toolboxDivStyle(exp.summary)}>
-                                                                {supportBox(
-                                                                    exp.summary,
-                                                                    exp.name,
-                                                                    {},
-                                                                    () => (this.props.viewState.selected = exp.id),
-                                                                )}
-                                                            </div>
-                                                        </Tooltip>
-                                                    );
-                                                })}
-                                        </div>
+                                </div>
+                                <div style={exportsToDiv}>
+                                    <h4 style={{ paddingTop: "10px" }}>{tool} FMUs have been imported by:</h4>
+                                    <div>
+                                        {exports.length === 0 && <p>No tools</p>}
+                                        <ButtonStack
+                                            ids={exports.map(exp => exp.id)}
+                                            viewState={this.props.viewState}
+                                            style={id => ({})}
+                                            intent="none"
+                                            justification={Justification.RaggedRight}
+                                            renderLabel={exportLabel}
+                                        />
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
+                    </div>
+                    )
                 </div>
             </Overlay>
         );

@@ -14,6 +14,7 @@ export class Columns extends React.Component<ColumnsProps, {}> {
                 {this.props.children &&
                     this.props.children.map((child, i) => (
                         <div
+                            key={i}
                             style={{
                                 ...flexGrow1,
                                 textAlign: "center",

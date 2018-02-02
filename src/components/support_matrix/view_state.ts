@@ -5,6 +5,13 @@ import { QueryFunction } from "../data";
 
 const emptyMatrix: MatrixReport = { tools: [], exporters: [], importers: [] };
 
+export interface Columns {
+    tools: string[];
+    import_only: string[];
+    both: string[];
+    export_only: string[];
+}
+
 export class ViewState {
     @observable selected: string | null = null;
     @observable version: string | undefined = undefined;
@@ -60,6 +67,29 @@ export class ViewState {
         }
         // Happens if tool doesn't export
         return null;
+    }
+
+    @computed
+    get columns(): Columns {
+        let ekeys = Object.keys(this.export_tools);
+        let io: string[] = [];
+        let eo: string[] = [];
+        let both: string[] = [];
+
+        ekeys.forEach(key => {
+            let exports = this.matrix.get().exporters.some(exp => exp.id === key);
+            let imports = this.matrix.get().exporters.some(exp => exp.columns.some(imp => imp.id === key));
+            if (imports && exports) both.push(key);
+            if (imports && !exports) io.push(key);
+            if (exports && !imports) eo.push(key);
+        });
+
+        return {
+            tools: ekeys,
+            import_only: io,
+            export_only: eo,
+            both: both,
+        };
     }
 
     constructor(protected query: QueryFunction) {}

@@ -6,7 +6,7 @@ import { FMISpinner } from "./spinner";
 import { Filter } from "./filter";
 import { ViewState } from "./view_state";
 import { supportLevel, supportColor } from "./logic";
-import { ButtonStack } from "./stack";
+import { ButtonStack, Justification } from "./stack";
 import { ZoomView } from "./zoom";
 import { truncate } from "../utils";
 import { Columns } from "./columns";
@@ -25,92 +25,63 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
     }
 
     render() {
-        let leftArrow = (id: string) => {
-            let exports = this.viewState.matrix.get().exporters.some(exp => exp.id === id);
-            let imports = this.viewState.matrix.get().exporters.some(exp => exp.columns.some(imp => imp.id === id));
-            if (imports && !exports) return <span className="pt-icon-arrow-right" />;
-            return null;
-        };
-        let rightArrow = (id: string) => {
-            let exports = this.viewState.matrix.get().exporters.some(exp => exp.id === id);
-            let imports = this.viewState.matrix.get().exporters.some(exp => exp.columns.some(imp => imp.id === id));
-            if (imports && exports) return <span className="pt-icon-arrows-horizontal" />;
-            if (imports) return null;
-            if (exports) return <span className="pt-icon-arrow-right" />;
-            return <span className="pt-icon-ban-circle" />;
-        };
-
-        let ekeys = Object.keys(this.viewState.export_tools);
-        let io: string[] = [];
-        let eo: string[] = [];
-        let both: string[] = [];
-
-        ekeys.forEach(key => {
-            let exports = this.viewState.matrix.get().exporters.some(exp => exp.id === key);
-            let imports = this.viewState.matrix.get().exporters.some(exp => exp.columns.some(imp => imp.id === key));
-            if (imports && exports) both.push(key);
-            if (imports && !exports) io.push(key);
-            if (exports && !imports) eo.push(key);
-        });
-
-        this.viewState.matrix.get().tools.forEach(tool => {
-            if (io.indexOf(tool) === -1 && eo.indexOf(tool) === -1 && both.indexOf(tool) === -1) {
-                console.log("Tool " + tool + " provides no cross-check data");
-            }
-        });
-
         let importStyle = (id: string) => ({ backgroundColor: supportColor(supportLevel(this.viewState, id, false)) });
         let exportStyle = (id: string) => ({ backgroundColor: supportColor(supportLevel(this.viewState, id, true)) });
-        let renderLabel = (id: string) => (
-            <div>
-                <small>{leftArrow(id)}</small>&nbsp;
-                <span>{truncate(this.viewState.export_tools[id])}</span>
-                &nbsp;<small>{rightArrow(id)}</small>
-            </div>
-        );
+        let renderLabel = (id: string) => <span>{truncate(this.viewState.export_tools[id])}</span>;
+
+        let columns = this.viewState.columns;
 
         return (
             <div className="Support" style={{ margin: "10px" }}>
                 <Filter settings={this.viewState} />
                 {/* Show spinner if the data hasn't loaded yet */}
                 {this.viewState.loading && FMISpinner}
-                {!this.viewState.loading && ekeys.length === 0 && <p>No tools match your filter parameters</p>}
+                {!this.viewState.loading && columns.tools.length === 0 && <p>No tools match your filter parameters</p>}
                 {!this.viewState.loading &&
-                    ekeys.length > 0 && (
+                    columns.tools.length > 0 && (
                         <div>
                             <p>Select a tool to find out more about its FMI capabilities...</p>
                             <div style={{ display: "flex", marginBottom: "30px" }}>
                                 <Columns>
                                     <div>
-                                        <h4>Export only</h4>
+                                        <h4>
+                                            Export only&nbsp;<span className="pt-icon-arrow-right" />
+                                        </h4>
                                         <ButtonStack
-                                            ids={eo}
+                                            ids={columns.export_only}
                                             viewState={this.viewState}
                                             style={exportStyle}
                                             renderLabel={renderLabel}
+                                            justification={Justification.Block}
                                         />
                                     </div>
                                     <div>
-                                        <h4>Import and Export</h4>
+                                        <h4>
+                                            <span className="pt-icon-arrow-right" />&nbsp;Import and Export&nbsp;<span className="pt-icon-arrow-right" />
+                                        </h4>
                                         <ButtonStack
-                                            ids={both}
+                                            ids={columns.both}
                                             viewState={this.viewState}
                                             style={importStyle}
                                             renderLabel={renderLabel}
+                                            justification={Justification.Block}
                                         />
                                     </div>
                                     <div>
-                                        <h4>Import only</h4>
+                                        <h4>
+                                            <span className="pt-icon-arrow-right" />&nbsp;Import only
+                                        </h4>
                                         <ButtonStack
-                                            ids={io}
+                                            ids={columns.import_only}
                                             viewState={this.viewState}
                                             style={importStyle}
                                             renderLabel={renderLabel}
+                                            justification={Justification.Block}
                                         />
                                     </div>
                                 </Columns>
                             </div>
-                            <ZoomView viewState={this.viewState} ekeys={ekeys} />
+                            <ZoomView viewState={this.viewState} tools={columns.tools} />
                             {/* <SupportGraph matrix={this.matrix.get()} /> */}
                         </div>
                     )}
