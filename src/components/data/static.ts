@@ -1,5 +1,5 @@
-import { MatrixReport, ToolsTable, CrossCheckResult, createMatrixReport } from '@modelica/fmi-data';
-import { QueryFunction } from './query';
+import { MatrixReport, ToolsTable, CrossCheckResult, createMatrixReport } from "@modelica/fmi-data";
+import { QueryFunction, QueryResult } from "./query";
 
 const versionKey = "version";
 const variantKey = "variant";
@@ -10,7 +10,7 @@ let toolsURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/mast
 // const fmusURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/fmus.json";
 let xcURI = "https://raw.githubusercontent.com/modelica/fmi-standard.org/master/_data/xc_results.json";
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
     // For production, we use these links
     console.log("Using development data");
     toolsURI = "http://localhost:3000/sample_data/tools.json";
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
 
 async function fetchJSON<T extends {}>(uri: string): Promise<T> {
     let headers = new Headers({
-        "Accept": "application/json",
+        Accept: "application/json",
     });
     headers.set("Accept", "application/json");
 
@@ -33,25 +33,47 @@ async function fetchJSON<T extends {}>(uri: string): Promise<T> {
     return resp.json();
 }
 export function loadData(): QueryFunction {
-    let tools = fetchJSON<ToolsTable>(toolsURI);
-    let results = fetchJSON<CrossCheckResult[]>(xcURI);
+    let toolsTable = fetchJSON<ToolsTable>(toolsURI);
+    let resultsTable = fetchJSON<CrossCheckResult[]>(xcURI);
     // fetch data
-    return async (version: string | undefined, variant: string | undefined, platform: string | undefined): Promise<MatrixReport> => {
-        return createMatrixReport(await tools, await results, { version: version, variant: variant, platform: platform });
+    return async (
+        version: string | undefined,
+        variant: string | undefined,
+        platform: string | undefined,
+    ): Promise<QueryResult> => {
+        let tools = await toolsTable;
+        let results = await resultsTable;
+        let matrix = await createMatrixReport(tools, results, {
+            version: version,
+            variant: variant,
+            platform: platform,
+        });
+        let ret: QueryResult = {
+            matrix: matrix,
+            tools: tools,
+            xc_results: results,
+        };
+        return ret;
     };
 }
-export async function createMatrix(version: string | undefined, variant: string | undefined, platform: string | undefined): Promise<MatrixReport> {
+export async function createMatrix(
+    version: string | undefined,
+    variant: string | undefined,
+    platform: string | undefined,
+): Promise<MatrixReport> {
     let qs: { [key: string]: string } = {};
     if (version) qs[versionKey] = version;
     if (variant) qs[variantKey] = variant;
     if (platform) qs[platformKey] = platform;
 
     let headers = new Headers({
-        "Accept": "application/json",
+        Accept: "application/json",
     });
     headers.set("Accept", "application/json");
 
-    let qsstr = Object.keys(qs).map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(qs[k])).join("&");
+    let qsstr = Object.keys(qs)
+        .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(qs[k]))
+        .join("&");
 
     let req = new Request(`http://localhost:4000/report/matrix?${qsstr}`, {
         method: "GET",

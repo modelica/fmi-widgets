@@ -4,7 +4,7 @@ import { Colors } from "@blueprintjs/core";
 
 export function supportLevel(state: ViewState, tool: string, exp: boolean): Status {
     // If cross-check data...green
-    let mat = state.matrix.get();
+    let mat = state.matrix;
 
     if (exp) {
         for (let i = 0; i < mat.exporters.length; i++) {

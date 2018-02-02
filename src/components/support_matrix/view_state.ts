@@ -1,7 +1,7 @@
 import { observable, computed } from "mobx";
 import { promisedComputed } from "computed-async-mobx";
 import { MatrixReport, RowReport } from "@modelica/fmi-data";
-import { QueryFunction } from "../data";
+import { QueryFunction, QueryResult } from "../data";
 
 const emptyMatrix: MatrixReport = { tools: [], exporters: [], importers: [] };
 
@@ -35,14 +35,23 @@ export class ViewState {
     @observable platform: string | undefined = undefined;
 
     /** The MatrixReport instance for the given filter parameters */
-    matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
+    // matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
+    //     return this.query(this.version, this.variant, this.platform);
+    // });
+
+    results = promisedComputed<QueryResult>({ matrix: emptyMatrix, tools: [], xc_results: [] }, () => {
         return this.query(this.version, this.variant, this.platform);
     });
+
+    @computed
+    get matrix() {
+        return this.results.get().matrix;
+    }
 
     /** A flag indicating whether we are waiting for the matrix report */
     @computed
     get loading() {
-        return this.matrix.busy;
+        return this.results.busy;
     }
 
     /**
@@ -52,7 +61,7 @@ export class ViewState {
     @computed
     get export_tools(): { [id: string]: string } {
         let ret = {};
-        this.matrix.get().importers.forEach(exp => {
+        this.matrix.importers.forEach(exp => {
             ret[exp.id] = exp.name;
             exp.columns.forEach(imp => {
                 ret[imp.id] = imp.name;
@@ -67,7 +76,7 @@ export class ViewState {
     @computed
     get import_tools(): { [id: string]: string } {
         let ret = {};
-        this.matrix.get().importers.forEach(exp => {
+        this.matrix.importers.forEach(exp => {
             ret[exp.id] = exp.name;
             exp.columns.forEach(imp => {
                 ret[imp.id] = imp.name;
@@ -81,8 +90,8 @@ export class ViewState {
     get exportsToSelected(): RowReport | null {
         if (this.selected == null) return null;
 
-        for (let i = 0; i < this.matrix.get().importers.length; i++) {
-            if (this.matrix.get().importers[i].id === this.selected) return this.matrix.get().importers[i];
+        for (let i = 0; i < this.matrix.importers.length; i++) {
+            if (this.matrix.importers[i].id === this.selected) return this.matrix.importers[i];
         }
         // Happens if tool doesn't support export
         return null;
@@ -93,8 +102,8 @@ export class ViewState {
     get importsFromSelected(): RowReport | null {
         if (this.selected == null) return null;
 
-        for (let i = 0; i < this.matrix.get().importers.length; i++) {
-            if (this.matrix.get().importers[i].id === this.selected) return this.matrix.get().importers[i];
+        for (let i = 0; i < this.matrix.importers.length; i++) {
+            if (this.matrix.importers[i].id === this.selected) return this.matrix.importers[i];
         }
         // Happens if tool doesn't export
         return null;
@@ -115,8 +124,8 @@ export class ViewState {
         let both: string[] = [];
 
         ekeys.forEach(key => {
-            let exports = this.matrix.get().exporters.some(exp => exp.id === key);
-            let imports = this.matrix.get().exporters.some(exp => exp.columns.some(imp => imp.id === key));
+            let exports = this.matrix.exporters.some(exp => exp.id === key);
+            let imports = this.matrix.exporters.some(exp => exp.columns.some(imp => imp.id === key));
             if (imports && exports) both.push(key);
             if (imports && !exports) importOnly.push(key);
             if (exports && !imports) exportOnly.push(key);
