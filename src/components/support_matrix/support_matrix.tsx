@@ -34,6 +34,7 @@ const toolboxDiv = {
     backgroundImage: "linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0))",
     color: "#182026",
 };
+
 const importsFromDiv = {
     minWidth: "400px",
     width: "50%",
@@ -45,6 +46,7 @@ const importsFromDiv = {
     borderRight: "1px solid black",
     textAlign: "end",
 };
+
 const exportsToDiv = {
     minWidth: "400px",
     width: "50%",
@@ -56,11 +58,25 @@ const exportsToDiv = {
     borderLeft: "1px solid black",
 };
 
+const dashedRightBorder = {
+    textAlign: "center",
+    borderRight: "1px dashed black",
+    paddingRight: "5px",
+    marginRight: "5px",
+};
+
 const flexBasis = "auto";
+
+const flexGrow1 = {
+    flexGrow: 1,
+    flexBasis: flexBasis,
+};
 
 export interface SupportMatrixProps {
     query: QueryFunction;
 }
+
+export class ViewState {}
 
 @observer
 export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}> {
@@ -195,6 +211,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
         return (
             <div className="Support" style={{ margin: "10px" }}>
                 <Filter settings={this} />
+                {/* Show spinner if the data hasn't loaded yet */}
                 {this.loading && FMISpinner}
                 {!this.loading && ekeys.length === 0 && <p>No tools match your filter parameters</p>}
                 {!this.loading &&
@@ -202,16 +219,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                         <div>
                             <p>Select a tool to find out more about its FMI capabilities...</p>
                             <div style={{ display: "flex", marginBottom: "30px" }}>
-                                <div
-                                    style={{
-                                        flexGrow: 1,
-                                        flexBasis: flexBasis,
-                                        textAlign: "center",
-                                        borderRight: "1px dashed black",
-                                        paddingRight: "5px",
-                                        marginRight: "5px",
-                                    }}
-                                >
+                                <div style={{ ...flexGrow1, ...dashedRightBorder }}>
                                     <h4>Import only</h4>
                                     <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                                         {io.map((id, ti) => {
@@ -237,7 +245,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                                         })}
                                     </div>
                                 </div>
-                                <div style={{ flexGrow: 1, flexBasis: flexBasis, textAlign: "center" }}>
+                                <div style={{ ...flexGrow1, textAlign: "center" }}>
                                     <h4>Import and Export</h4>
                                     <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                                         {both.map((id, ti) => {
@@ -258,16 +266,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                                         })}
                                     </div>
                                 </div>
-                                <div
-                                    style={{
-                                        flexGrow: 1,
-                                        flexBasis: flexBasis,
-                                        textAlign: "center",
-                                        borderLeft: "1px dashed black",
-                                        paddingLeft: "5px",
-                                        marginLeft: "5px",
-                                    }}
-                                >
+                                <div style={{ ...flexGrow1, ...dashedRightBorder }}>
                                     <h4>Export only</h4>
                                     <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between" }}>
                                         {eo.map((id, ti) => {

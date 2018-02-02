@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 export interface SelectionDetails {
     label: string;
     currentKey: string | undefined;
-    onChange: (value: string) => void;
+    onChange: (value: string | undefined) => void;
     options: Array<{ key: string; label: string }>;
 }
 
@@ -19,7 +19,12 @@ export class Selection extends React.Component<SelectionDetails, {}> {
             <label className="pt-label pt-inline" style={{ marginLeft: "20px" }}>
                 {this.props.label}
                 <div className="pt-select">
-                    <select defaultValue={""} onChange={event => props.onChange(event.target.value as string)}>
+                    <select
+                        defaultValue={""}
+                        onChange={event =>
+                            props.onChange(event.target.value === "" ? undefined : (event.target.value as string))
+                        }
+                    >
                         {props.options.map((entry, i) => (
                             <option key={i} selected={entry.key === props.currentKey} value={entry.key}>
                                 {entry.label}
