@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Tooltip, Classes, Overlay, Position } from "@blueprintjs/core";
-import { ViewState } from "./view_state";
+import { ViewState } from "../state";
 import { observer } from "mobx-react";
 import { toolboxDivStyle, importsFromDiv, exportsToDiv } from "./style";
 import { VersionTable, supportBox } from "./version_table";
@@ -77,6 +77,13 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
         let tool = this.props.viewState.selected
             ? this.props.viewState.export_tools[this.props.viewState.selected]
             : "";
+        let desc = "";
+        if (tool !== "") {
+            let summary = this.props.viewState.results.get().tools.find(t => t.id === tool);
+            if (summary) {
+                desc = summary.note;
+            }
+        }
 
         return (
             <Overlay
@@ -90,6 +97,7 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                     <div style={backgrounDivStyle}>
                         <div style={rowDivStyle}>
                             <h1 style={{ textAlign: "center" }}>{tool}</h1>
+                            <p style={{ textAlign: "center" }}>{desc}</p>
                             <div style={columnDivStyle}>
                                 <div style={importsFromDiv}>
                                     <h4 style={{ paddingTop: "10px" }}>{tool} imports FMUs from:</h4>

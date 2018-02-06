@@ -1,4 +1,4 @@
-import { MatrixReport, ToolsTable, CrossCheckTable } from "@modelica/fmi-data";
+import { MatrixReport, ToolsTable } from "@modelica/fmi-data";
 
 export interface QueryResult {
     tools: ToolsTable;

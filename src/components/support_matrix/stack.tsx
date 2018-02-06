@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ViewState } from "./view_state";
+import { ViewState } from "../state";
 import { Button } from "@blueprintjs/core";
 import { observer } from "mobx-react";
 

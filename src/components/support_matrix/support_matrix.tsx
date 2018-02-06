@@ -4,7 +4,7 @@ import { observer } from "mobx-react";
 import { QueryFunction } from "../data";
 import { FMISpinner } from "./spinner";
 import { Filter } from "./filter";
-import { ViewState } from "./view_state";
+import { ViewState } from "../state";
 import { supportLevel, supportColor } from "./logic";
 import { ButtonStack, Justification } from "./stack";
 import { ZoomView } from "./zoom";

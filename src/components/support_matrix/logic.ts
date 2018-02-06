@@ -1,5 +1,5 @@
 import { Status } from "@modelica/fmi-data";
-import { ViewState } from "./view_state";
+import { ViewState } from "../state";
 import { Colors } from "@blueprintjs/core";
 
 export function supportLevel(state: ViewState, tool: string, exp: boolean): Status {

@@ -1,7 +1,7 @@
 import { observable, computed } from "mobx";
 import { promisedComputed } from "computed-async-mobx";
 import { MatrixReport, RowReport } from "@modelica/fmi-data";
-import { QueryFunction, QueryResult } from "../data";
+import { QueryFunction, QueryResult } from "./data";
 
 const emptyMatrix: MatrixReport = { tools: [], exporters: [], importers: [] };
 
