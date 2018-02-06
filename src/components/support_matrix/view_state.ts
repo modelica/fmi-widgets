@@ -39,7 +39,8 @@ export class ViewState {
     //     return this.query(this.version, this.variant, this.platform);
     // });
 
-    results = promisedComputed<QueryResult>({ matrix: emptyMatrix, tools: [], xc_results: [] }, () => {
+    /** These are the results of the query. */
+    results = promisedComputed<QueryResult>({ matrix: emptyMatrix, tools: [] }, () => {
         return this.query(this.version, this.variant, this.platform);
     });
 

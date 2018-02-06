@@ -51,7 +51,6 @@ export function loadData(): QueryFunction {
         let ret: QueryResult = {
             matrix: matrix,
             tools: tools,
-            xc_results: results,
         };
         return ret;
     };
