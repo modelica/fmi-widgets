@@ -21,25 +21,20 @@ export const toolboxDiv = {
 
 export const importsFromDiv = {
     minWidth: "400px",
-    width: "50%",
     paddingTop: "30x",
     paddintBottom: "20px",
-    paddingRight: "20px",
-    borderTopRightRadius: "20px",
-    borderBottomRightRadius: "20px",
-    borderRight: "1px solid black",
-    textAlign: "end",
+    paddingLeft: "10px",
+    paddingRight: "10px",
+    textAlign: "start",
 };
 
 export const exportsToDiv = {
     minWidth: "400px",
-    width: "50%",
     paddingTop: "30x",
     paddingBottom: "20px",
-    paddingLeft: "20px",
-    borderTopLeftRadius: "20px",
-    borderBottomLeftRadius: "20px",
-    borderLeft: "1px solid black",
+    paddingLeft: "10px",
+    paddingRight: "10px",
+    textAlign: "end",
 };
 
 export const dashedRightBorder = {

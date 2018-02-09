@@ -6,6 +6,7 @@ import { toolboxDivStyle, importsFromDiv, exportsToDiv } from "./style";
 import { VersionTable, supportBox } from "./version_table";
 import { ButtonStack, Justification } from "./stack";
 import { Status, ToolSummary } from "@modelica/fmi-data";
+import { Columns } from "./columns";
 
 export interface ZoomViewProps {
     viewState: ViewState;
@@ -14,13 +15,6 @@ export interface ZoomViewProps {
 
 const backgrounDivStyle: React.CSSProperties = {
     backgroundColor: "white",
-};
-
-const columnDivStyle: React.CSSProperties = {
-    display: "flex",
-    flexDirection: "row",
-    paddingLeft: 5,
-    paddingRight: 5,
 };
 
 const rowDivStyle: React.CSSProperties = {
@@ -124,16 +118,40 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                                 {homepage}
                                 {email}
                             </p>
-                            <div style={columnDivStyle}>
+                            <Columns>
+                                <div style={exportsToDiv}>
+                                    <h4>{toolName} FMUs have been imported by:</h4>
+                                    <div>
+                                        {exportsTo.length === 0 &&
+                                            summary && (
+                                                <div>
+                                                    <p>No tools</p>
+                                                    <SupportTable
+                                                        style={{ marginLeft: "auto" }}
+                                                        summary={summary}
+                                                        type="import"
+                                                    />
+                                                </div>
+                                            )}
+                                        <ButtonStack
+                                            ids={exportsTo.map(exp => exp.id)}
+                                            viewState={this.props.viewState}
+                                            buttonStyle={id => ({})}
+                                            intent="none"
+                                            justification={Justification.RaggedLeft}
+                                            renderLabel={exportLabel}
+                                        />
+                                    </div>
+                                </div>
                                 <div style={importsFromDiv}>
-                                    <h4 style={{ paddingTop: "10px" }}>{toolName} imports FMUs from:</h4>
+                                    <h4>{toolName} imports FMUs from:</h4>
                                     <div>
                                         {importsFrom.length === 0 &&
                                             summary && (
                                                 <div>
                                                     <p>No tools</p>
                                                     <SupportTable
-                                                        style={{ marginLeft: "auto" }}
+                                                        style={{ marginRight: "auto" }}
                                                         summary={summary}
                                                         type="export"
                                                     />
@@ -144,32 +162,12 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                                             viewState={this.props.viewState}
                                             buttonStyle={id => ({})}
                                             intent="none"
-                                            justification={Justification.RaggedLeft}
+                                            justification={Justification.RaggedRight}
                                             renderLabel={importLabel}
                                         />
                                     </div>
                                 </div>
-                                <div style={exportsToDiv}>
-                                    <h4 style={{ paddingTop: "10px" }}>{toolName} FMUs have been imported by:</h4>
-                                    <div>
-                                        {exportsTo.length === 0 &&
-                                            summary && (
-                                                <div>
-                                                    <p>No tools</p>
-                                                    <SupportTable summary={summary} type="import" />
-                                                </div>
-                                            )}
-                                        <ButtonStack
-                                            ids={exportsTo.map(exp => exp.id)}
-                                            viewState={this.props.viewState}
-                                            buttonStyle={id => ({})}
-                                            intent="none"
-                                            justification={Justification.RaggedRight}
-                                            renderLabel={exportLabel}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                            </Columns>
                         </div>
                     </div>
                     )
@@ -190,7 +188,7 @@ class SupportTable extends React.Component<SupportProps, {}> {
         let summary = this.props.summary;
         let type = this.props.type;
         return (
-            <div>
+            <div style={{ marginTop: "20px" }}>
                 <h6>Support claimed by vendor:</h6>
                 <table className="pt-table pt-bordered" style={{ ...this.props.style }}>
                     <thead>
