@@ -34,6 +34,8 @@ export class ViewState {
     @observable platform: string | undefined = undefined;
     /** Whether to show available and planned support */
     @observable showUnchecked = false;
+    /** A search term */
+    @observable search: string = "";
 
     /** The MatrixReport instance for the given filter parameters */
     // matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
@@ -47,7 +49,7 @@ export class ViewState {
 
     @computed
     get matrix() {
-        return this.results.get().matrix;
+        return filterMatrix(this.results.get().matrix, this.results.get().tools, this.search);
     }
 
     /** A flag indicating whether we are waiting for the matrix report */
@@ -205,6 +207,14 @@ export class ViewState {
         };
     }
 
+    public matchesTerm2 = (id: string) => {
+        if (this.search === "") return true;
+        let lid = id.toLowerCase();
+        let matchesId = lid.indexOf(this.search.toLowerCase()) >= 0;
+        // console.log("'" + term + "' matches '" + lid + "' -> ", matchesId);
+        return matchesId;
+    };
+
     constructor(protected query: QueryFunction) {}
 
     private isImporting(tool: ToolSummary, status: Status) {
@@ -222,4 +232,9 @@ export class ViewState {
             ((this.incv2 && (this.inccs && tool.fmi2.slave === status)) || (this.incme && tool.fmi2.export === status))
         );
     }
+}
+
+function filterMatrix(matrix: MatrixReport, summaries: ToolSummary[], term: string): MatrixReport {
+    if (term === "") return matrix;
+    return matrix;
 }

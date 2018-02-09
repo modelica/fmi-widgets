@@ -42,12 +42,27 @@ export class Unchecked extends React.Component<UncheckedProps, {}> {
             console.log("Selecting: ", id);
             this.props.viewState.selected = id;
         };
+        let isOpen =
+            (this.props.viewState.showUnchecked || !!this.props.viewState.search) &&
+            this.props.viewState.platform === undefined;
         return (
             <div style={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
                 <div style={{ flexGrow: 1, marginTop: "20px" }} />
-                <Collapse isOpen={this.props.viewState.showUnchecked && this.props.viewState.platform === undefined}>
-                    {describe("Available", "warning", this.props.viewState, support.available, select)}
-                    {describe("Planning Support", "default", this.props.viewState, support.planned, select)}
+                <Collapse isOpen={isOpen}>
+                    {describe(
+                        "Available",
+                        "warning",
+                        this.props.viewState,
+                        support.available.filter(this.props.viewState.matchesTerm2),
+                        select,
+                    )}
+                    {describe(
+                        "Planning Support",
+                        "default",
+                        this.props.viewState,
+                        support.planned.filter(this.props.viewState.matchesTerm2),
+                        select,
+                    )}
                 </Collapse>
             </div>
         );

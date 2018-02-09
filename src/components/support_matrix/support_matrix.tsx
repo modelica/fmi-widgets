@@ -42,69 +42,82 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
         let renderLabel = (id: string) => <span>{truncate(this.viewState.export_tools[id])}</span>;
 
         let columns = this.viewState.columns;
+        let exportOnly = columns.export_only.filter(this.viewState.matchesTerm2);
+        let both = columns.both.filter(this.viewState.matchesTerm2);
+        let importOnly = columns.import_only.filter(this.viewState.matchesTerm2);
 
         return (
             <div className="Support" style={{ margin: "10px" }}>
                 <Filter settings={this.viewState} />
                 {/* Show spinner if the data hasn't loaded yet */}
                 {this.viewState.loading && FMISpinner}
-                {!this.viewState.loading && columns.tools.length === 0 && <p>No tools match your filter parameters</p>}
-                {!this.viewState.loading &&
-                    columns.tools.length > 0 && (
-                        <div>
-                            <p>Select a tool to find out more about its FMI capabilities...</p>
-                            <div style={{ display: "flex", marginBottom: "30px" }}>
-                                <Columns>
-                                    <div style={colDivStyle}>
-                                        <h4>
-                                            Export only&nbsp;<span className="pt-icon-arrow-right" />
-                                        </h4>
-                                        <h5 style={{ textAlign: "left" }}>Cross-Checked</h5>
+                {!this.viewState.loading && (
+                    <div>
+                        <p>Select a tool to find out more about its FMI capabilities...</p>
+                        <div style={{ display: "flex", marginBottom: "30px" }}>
+                            <Columns style={{ flexGrow: 1 }}>
+                                <div style={colDivStyle}>
+                                    <h4>
+                                        Export only&nbsp;<span className="pt-icon-arrow-right" />
+                                    </h4>
+                                    <h5 style={{ textAlign: "left" }}>Cross-Checked</h5>
+                                    {exportOnly.length === 0 ? (
+                                        <p>No tools match filter parameters</p>
+                                    ) : (
                                         <ButtonStack
-                                            ids={columns.export_only}
+                                            ids={exportOnly}
                                             style={stackStyle}
                                             viewState={this.viewState}
                                             buttonStyle={exportStyle}
                                             renderLabel={renderLabel}
                                             justification={Justification.Block}
                                         />
-                                        <Unchecked imports={false} viewState={this.viewState} />
-                                    </div>
-                                    <div style={colDivStyle}>
-                                        <h4>
-                                            <span className="pt-icon-arrow-right" />&nbsp;Import and Export&nbsp;<span className="pt-icon-arrow-right" />
-                                        </h4>
-                                        <h5 style={{ textAlign: "left" }}>Cross-Checked</h5>
+                                    )}
+                                    <Unchecked imports={false} viewState={this.viewState} />
+                                </div>
+                                <div style={colDivStyle}>
+                                    <h4>
+                                        <span className="pt-icon-arrow-right" />&nbsp;Import and Export&nbsp;<span className="pt-icon-arrow-right" />
+                                    </h4>
+                                    <h5 style={{ textAlign: "left" }}>Cross-Checked</h5>
+                                    {both.length === 0 ? (
+                                        <p>No tools match filter parameters</p>
+                                    ) : (
                                         <ButtonStack
-                                            ids={columns.both}
+                                            ids={both}
                                             style={stackStyle}
                                             viewState={this.viewState}
                                             buttonStyle={importStyle}
                                             renderLabel={renderLabel}
                                             justification={Justification.Block}
                                         />
-                                    </div>
-                                    <div style={colDivStyle}>
-                                        <h4>
-                                            <span className="pt-icon-arrow-right" />&nbsp;Import only
-                                        </h4>
-                                        <h5 style={{ textAlign: "left" }}>Cross-Checked</h5>
+                                    )}
+                                </div>
+                                <div style={colDivStyle}>
+                                    <h4>
+                                        <span className="pt-icon-arrow-right" />&nbsp;Import only
+                                    </h4>
+                                    <h5 style={{ textAlign: "left" }}>Cross-Checked</h5>
+                                    {importOnly.length === 0 ? (
+                                        <p>No tools match filter parameters</p>
+                                    ) : (
                                         <ButtonStack
-                                            ids={columns.import_only}
+                                            ids={importOnly}
                                             style={stackStyle}
                                             viewState={this.viewState}
                                             buttonStyle={importStyle}
                                             renderLabel={renderLabel}
                                             justification={Justification.Block}
                                         />
-                                        <Unchecked imports={true} viewState={this.viewState} />
-                                    </div>
-                                </Columns>
-                            </div>
-                            <ZoomView viewState={this.viewState} tools={columns.tools} />
-                            {/* <SupportGraph matrix={this.matrix.get()} /> */}
+                                    )}
+                                    <Unchecked imports={true} viewState={this.viewState} />
+                                </div>
+                            </Columns>
                         </div>
-                    )}
+                        <ZoomView viewState={this.viewState} tools={columns.tools} />
+                        {/* <SupportGraph matrix={this.matrix.get()} /> */}
+                    </div>
+                )}
             </div>
         );
     }

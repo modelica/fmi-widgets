@@ -1,19 +1,29 @@
 import * as React from "react";
 import { fmiVersions, fmiVariants, fmiPlatforms } from "../options";
 import { Selection } from "./selection";
+import { observer } from "mobx-react";
 
 export interface FilterSettings {
     settings: {
         version: string | undefined;
         variant: string | undefined;
         platform: string | undefined;
+        search: string;
         showUnchecked: boolean;
     };
 }
 
+@observer
 export class Filter extends React.Component<FilterSettings, {}> {
     render() {
         let settings = this.props.settings;
+        let updateSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
+            console.dir(ev);
+            let term = ev.target.value;
+            console.log("search term now: ", term);
+            settings.search = term || "";
+            console.dir(settings);
+        };
         return (
             <div style={{ display: "flex" }}>
                 <Selection
@@ -46,6 +56,17 @@ export class Filter extends React.Component<FilterSettings, {}> {
                     <span className="pt-control-indicator" />
                     Show Planned and Available Support
                 </label>
+                <div className="pt-input-group">
+                    <span className="pt-icon pt-icon-search" />
+                    <input
+                        className="pt-input"
+                        type="search"
+                        placeholder="Search input"
+                        value={settings.search}
+                        onChange={updateSearch}
+                        dir="auto"
+                    />
+                </div>
             </div>
         );
     }

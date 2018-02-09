@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 
 export interface ColumnsProps {
     children: React.ReactElement<{}>[];
+    style?: React.CSSProperties;
 }
 
 @observer
@@ -11,7 +12,7 @@ export class Columns extends React.Component<ColumnsProps, {}> {
     render() {
         let maxWidth = Math.floor(100 / Math.max(2, this.props.children.length) * 1.1) + "%";
         return (
-            <div style={{ display: "flex", marginBottom: "30px" }}>
+            <div style={{ display: "flex", marginBottom: "30px", ...this.props.style }}>
                 {this.props.children &&
                     this.props.children.map((child, i) => (
                         <div
