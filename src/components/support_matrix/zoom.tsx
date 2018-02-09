@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { toolboxDivStyle, importsFromDiv, exportsToDiv } from "./style";
 import { VersionTable, supportBox } from "./version_table";
 import { ButtonStack, Justification } from "./stack";
+import { Status, ToolSummary } from "@modelica/fmi-data";
 
 export interface ZoomViewProps {
     viewState: ViewState;
@@ -32,9 +33,12 @@ const rowDivStyle: React.CSSProperties = {
 @observer
 export class ZoomView extends React.Component<ZoomViewProps, {}> {
     render() {
-        let open = !!(this.props.viewState.selected && this.props.tools.indexOf(this.props.viewState.selected) >= 0);
-        let imports = this.props.viewState.importsFromSelected ? this.props.viewState.importsFromSelected.columns : [];
-        let exports = this.props.viewState.exportsToSelected ? this.props.viewState.exportsToSelected.columns : [];
+        let selected = this.props.viewState.selected;
+        let open = !!selected;
+        let importsFrom = this.props.viewState.importsFromSelected
+            ? this.props.viewState.importsFromSelected.columns
+            : [];
+        let exportsTo = this.props.viewState.exportsToSelected ? this.props.viewState.exportsToSelected.columns : [];
 
         let importReport = (id: string) => {
             if (this.props.viewState.importsFromSelected) {
@@ -74,14 +78,32 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
             );
         };
 
-        let tool = this.props.viewState.selected
-            ? this.props.viewState.export_tools[this.props.viewState.selected]
-            : "";
+        let toolName = "";
         let desc = "";
-        if (tool !== "") {
-            let summary = this.props.viewState.results.get().tools.find(t => t.id === tool);
+        let homepage: JSX.Element | null = null;
+        let email: JSX.Element | null = null;
+        let summary: ToolSummary | null = null;
+        if (this.props.viewState.selected) {
+            summary =
+                this.props.viewState.results.get().tools.find(t => t.id === this.props.viewState.selected) || null;
             if (summary) {
+                toolName = summary.displayName;
                 desc = summary.note;
+                if (summary.homepage) {
+                    homepage = (
+                        <a href={summary.homepage} style={{ flexGrow: 1 }}>
+                            <span className="pt-icon-standard pt-icon-info-sign" />&nbsp;Web Site&nbsp;&nbsp;
+                        </a>
+                    );
+                }
+                if (summary.email) {
+                    email = (
+                        <a href={"mailto:" + summary.email} style={{ flexGrow: 1 }}>
+                            <span className="pt-icon-standard pt-icon-envelope" />&nbsp;Email ({summary.email})
+                            &nbsp;&nbsp;
+                        </a>
+                    );
+                }
             }
         }
 
@@ -96,15 +118,29 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                 <div style={{ width: "80%", left: "10%", right: "10%", marginTop: "10vh" }}>
                     <div style={backgrounDivStyle}>
                         <div style={rowDivStyle}>
-                            <h1 style={{ textAlign: "center" }}>{tool}</h1>
+                            <h1 style={{ textAlign: "center" }}>{toolName}</h1>
                             <p style={{ textAlign: "center" }}>{desc}</p>
+                            <p style={{ textAlign: "center" }}>
+                                {homepage}
+                                {email}
+                            </p>
                             <div style={columnDivStyle}>
                                 <div style={importsFromDiv}>
-                                    <h4 style={{ paddingTop: "10px" }}>{tool} imports FMUs from:</h4>
+                                    <h4 style={{ paddingTop: "10px" }}>{toolName} imports FMUs from:</h4>
                                     <div>
-                                        {imports.length === 0 && <p>No tools</p>}
+                                        {importsFrom.length === 0 &&
+                                            summary && (
+                                                <div>
+                                                    <p>No tools</p>
+                                                    <SupportTable
+                                                        style={{ marginLeft: "auto" }}
+                                                        summary={summary}
+                                                        type="export"
+                                                    />
+                                                </div>
+                                            )}
                                         <ButtonStack
-                                            ids={imports.map(imp => imp.id)}
+                                            ids={importsFrom.map(imp => imp.id)}
                                             viewState={this.props.viewState}
                                             buttonStyle={id => ({})}
                                             intent="none"
@@ -114,11 +150,17 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                                     </div>
                                 </div>
                                 <div style={exportsToDiv}>
-                                    <h4 style={{ paddingTop: "10px" }}>{tool} FMUs have been imported by:</h4>
+                                    <h4 style={{ paddingTop: "10px" }}>{toolName} FMUs have been imported by:</h4>
                                     <div>
-                                        {exports.length === 0 && <p>No tools</p>}
+                                        {exportsTo.length === 0 &&
+                                            summary && (
+                                                <div>
+                                                    <p>No tools</p>
+                                                    <SupportTable summary={summary} type="import" />
+                                                </div>
+                                            )}
                                         <ButtonStack
-                                            ids={exports.map(exp => exp.id)}
+                                            ids={exportsTo.map(exp => exp.id)}
                                             viewState={this.props.viewState}
                                             buttonStyle={id => ({})}
                                             intent="none"
@@ -134,5 +176,67 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                 </div>
             </Overlay>
         );
+    }
+}
+
+export interface SupportProps {
+    summary: ToolSummary;
+    type: "import" | "export";
+    style?: React.CSSProperties;
+}
+
+class SupportTable extends React.Component<SupportProps, {}> {
+    render() {
+        let summary = this.props.summary;
+        let type = this.props.type;
+        return (
+            <div>
+                <h6>Support claimed by vendor:</h6>
+                <table className="pt-table pt-bordered" style={{ ...this.props.style }}>
+                    <thead>
+                        <tr>
+                            <th>Version</th>
+                            <th>{type === "export" ? "Import" : "Export"}</th>
+                            <th>{type === "export" ? "Master" : "Slave"}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>FMI 1.0</td>
+                            {supportSpan(type === "export" ? summary.fmi1.import : summary.fmi1.export)}
+                            {supportSpan(type === "export" ? summary.fmi1.master : summary.fmi1.slave)}
+                        </tr>
+                        <tr>
+                            <td>FMI 2.0</td>
+                            {supportSpan(type === "export" ? summary.fmi2.import : summary.fmi2.export)}
+                            {supportSpan(type === "export" ? summary.fmi2.master : summary.fmi2.slave)}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
+}
+
+function supportSpan(status: Status): JSX.Element {
+    switch (status) {
+        case Status.Available:
+            return (
+                <td>
+                    <span className={"pt-tag pt-intent-warning"} style={{ width: "100%", textAlign: "center" }}>
+                        Available
+                    </span>
+                </td>
+            );
+        case Status.Planned:
+            return (
+                <td>
+                    <span className={"pt-tag pt-intent-default"} style={{ width: "100%", textAlign: "center" }}>
+                        Planned
+                    </span>
+                </td>
+            );
+        default:
+            return <td>&nbsp;</td>;
     }
 }
