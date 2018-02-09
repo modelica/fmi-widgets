@@ -86,14 +86,14 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                 if (summary.homepage) {
                     homepage = (
                         <a href={summary.homepage} style={{ flexGrow: 1 }}>
-                            <span className="pt-icon-standard pt-icon-info-sign" />&nbsp;Web Site&nbsp;&nbsp;
+                            <span className="pt-icon-standard pt-icon-info-sign" />&nbsp;Homepage&nbsp;&nbsp;
                         </a>
                     );
                 }
                 if (summary.email) {
                     email = (
                         <a href={"mailto:" + summary.email} style={{ flexGrow: 1 }}>
-                            <span className="pt-icon-standard pt-icon-envelope" />&nbsp;Email ({summary.email})
+                            <span className="pt-icon-standard pt-icon-envelope" />&nbsp;{summary.email}
                             &nbsp;&nbsp;
                         </a>
                     );
