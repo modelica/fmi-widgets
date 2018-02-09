@@ -9,6 +9,7 @@ export interface ColumnsProps {
 @observer
 export class Columns extends React.Component<ColumnsProps, {}> {
     render() {
+        let maxWidth = Math.floor(100 / Math.max(2, this.props.children.length) * 1.1) + "%";
         return (
             <div style={{ display: "flex", marginBottom: "30px" }}>
                 {this.props.children &&
@@ -18,6 +19,7 @@ export class Columns extends React.Component<ColumnsProps, {}> {
                             style={{
                                 ...flexGrow1,
                                 textAlign: "center",
+                                maxWidth: maxWidth,
                                 ...(i !== this.props.children.length - 1 ? dashedRightBorder : {}),
                             }}
                         >

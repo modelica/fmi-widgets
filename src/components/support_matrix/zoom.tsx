@@ -106,7 +106,7 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                                         <ButtonStack
                                             ids={imports.map(imp => imp.id)}
                                             viewState={this.props.viewState}
-                                            style={id => ({})}
+                                            buttonStyle={id => ({})}
                                             intent="none"
                                             justification={Justification.RaggedLeft}
                                             renderLabel={importLabel}
@@ -120,7 +120,7 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                                         <ButtonStack
                                             ids={exports.map(exp => exp.id)}
                                             viewState={this.props.viewState}
-                                            style={id => ({})}
+                                            buttonStyle={id => ({})}
                                             intent="none"
                                             justification={Justification.RaggedRight}
                                             renderLabel={exportLabel}

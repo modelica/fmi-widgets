@@ -1,39 +1,6 @@
-import { Status } from "@modelica/fmi-data";
-import { ViewState } from "../state";
 import { Colors } from "@blueprintjs/core";
+import { ViewState } from "../state";
 
-export function supportLevel(state: ViewState, tool: string, exp: boolean): Status {
-    // If cross-check data...green
-    let mat = state.matrix;
-
-    if (exp) {
-        for (let i = 0; i < mat.exporters.length; i++) {
-            let exporter = mat.exporters[i];
-            if (exporter.id === tool) {
-                if (exporter.columns.length > 0) return Status.CrossChecked;
-                return exporter.best;
-            }
-        }
-        return Status.Unsupported;
-    } else {
-        for (let i = 0; i < mat.importers.length; i++) {
-            let importer = mat.importers[i];
-            if (importer.id === tool) {
-                if (importer.columns.length > 0) return Status.CrossChecked;
-                return importer.best;
-            }
-        }
-        return Status.Unsupported;
-    }
-}
-
-export function supportColor(support: Status): string {
-    switch (support) {
-        case Status.Available:
-            return Colors.ORANGE5;
-        case Status.CrossChecked:
-            return Colors.FOREST5;
-        default:
-            return Colors.GRAY5;
-    }
+export function supportColor(state: ViewState, tool: string, exp: boolean): string {
+    return Colors.GRAY5;
 }

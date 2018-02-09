@@ -12,7 +12,8 @@ export enum Justification {
 export interface ButtonStackProps {
     ids: string[];
     viewState: ViewState;
-    style: (id: string) => React.CSSProperties;
+    buttonStyle: (id: string) => React.CSSProperties;
+    style?: React.CSSProperties;
     renderLabel: (id: string) => JSX.Element | null;
     justification: Justification;
     intent?: string;
@@ -36,7 +37,7 @@ export class ButtonStack extends React.Component<ButtonStackProps, {}> {
                 break;
         }
         return (
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: justify }}>
+            <div style={{ ...this.props.style, display: "flex", flexWrap: "wrap", justifyContent: justify }}>
                 {this.props.ids.map((id, ti) => {
                     return (
                         <div key={id} style={{ margin: 2, flexGrow: flexGrow, textAlign: "center" }}>
@@ -44,7 +45,7 @@ export class ButtonStack extends React.Component<ButtonStackProps, {}> {
                                 className={"pt-small " + intent}
                                 style={{
                                     width: "100%",
-                                    ...this.props.style(id),
+                                    ...this.props.buttonStyle(id),
                                 }}
                                 active={this.props.viewState.selected === id}
                                 onClick={() => (this.props.viewState.selected = id)}

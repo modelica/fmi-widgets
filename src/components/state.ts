@@ -1,21 +1,20 @@
 import { observable, computed } from "mobx";
 import { promisedComputed } from "computed-async-mobx";
-import { MatrixReport, RowReport } from "@modelica/fmi-data";
+import { MatrixReport, RowReport, Status } from "@modelica/fmi-data";
 import { QueryFunction, QueryResult } from "./data";
 
-const emptyMatrix: MatrixReport = { tools: [], exporters: [], importers: [] };
-
-export interface SupportLevels {
-    tested: string[];
-    available: string[];
-    planned: string[];
-}
+const emptyMatrix: MatrixReport = { tools: [], exportsTo: [], importsFrom: [] };
 
 export interface Columns {
     tools: string[];
     import_only: string[];
     both: string[];
     export_only: string[];
+}
+
+export interface UncheckedSupport {
+    planned: string[];
+    available: string[];
 }
 
 /**
@@ -62,7 +61,7 @@ export class ViewState {
     @computed
     get export_tools(): { [id: string]: string } {
         let ret = {};
-        this.matrix.importers.forEach(exp => {
+        this.matrix.importsFrom.forEach(exp => {
             ret[exp.id] = exp.name;
             exp.columns.forEach(imp => {
                 ret[imp.id] = imp.name;
@@ -77,7 +76,7 @@ export class ViewState {
     @computed
     get import_tools(): { [id: string]: string } {
         let ret = {};
-        this.matrix.importers.forEach(exp => {
+        this.matrix.importsFrom.forEach(exp => {
             ret[exp.id] = exp.name;
             exp.columns.forEach(imp => {
                 ret[imp.id] = imp.name;
@@ -91,8 +90,8 @@ export class ViewState {
     get exportsToSelected(): RowReport | null {
         if (this.selected == null) return null;
 
-        for (let i = 0; i < this.matrix.importers.length; i++) {
-            if (this.matrix.importers[i].id === this.selected) return this.matrix.importers[i];
+        for (let i = 0; i < this.matrix.exportsTo.length; i++) {
+            if (this.matrix.exportsTo[i].id === this.selected) return this.matrix.exportsTo[i];
         }
         // Happens if tool doesn't support export
         return null;
@@ -103,8 +102,8 @@ export class ViewState {
     get importsFromSelected(): RowReport | null {
         if (this.selected == null) return null;
 
-        for (let i = 0; i < this.matrix.importers.length; i++) {
-            if (this.matrix.importers[i].id === this.selected) return this.matrix.importers[i];
+        for (let i = 0; i < this.matrix.importsFrom.length; i++) {
+            if (this.matrix.importsFrom[i].id === this.selected) return this.matrix.importsFrom[i];
         }
         // Happens if tool doesn't export
         return null;
@@ -125,8 +124,8 @@ export class ViewState {
         let both: string[] = [];
 
         ekeys.forEach(key => {
-            let exports = this.matrix.exporters.some(exp => exp.id === key);
-            let imports = this.matrix.exporters.some(exp => exp.columns.some(imp => imp.id === key));
+            let exports = this.matrix.exportsTo.some(exp => exp.id === key);
+            let imports = this.matrix.exportsTo.some(exp => exp.columns.some(imp => imp.id === key));
             if (imports && exports) both.push(key);
             if (imports && !exports) importOnly.push(key);
             if (exports && !imports) exportOnly.push(key);
@@ -137,6 +136,26 @@ export class ViewState {
             import_only: importOnly,
             export_only: exportOnly,
             both: both,
+        };
+    }
+
+    @computed
+    get uncheckedImporting(): UncheckedSupport {
+        let available = this.results.get().tools.filter(tool => tool.fmi1.import === Status.Available);
+        let planned = this.results.get().tools.filter(tool => tool.fmi1.import === Status.Planned);
+        return {
+            available: available.map(tool => tool.id),
+            planned: planned.map(tool => tool.id),
+        };
+    }
+
+    @computed
+    get uncheckedExporting(): UncheckedSupport {
+        let available = this.results.get().tools.filter(tool => tool.fmi1.export === Status.Available);
+        let planned = this.results.get().tools.filter(tool => tool.fmi1.export === Status.Planned);
+        return {
+            available: available.map(tool => tool.id),
+            planned: planned.map(tool => tool.id),
         };
     }
 

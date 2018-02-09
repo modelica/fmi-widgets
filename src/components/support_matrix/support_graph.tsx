@@ -1,42 +1,44 @@
-import { MatrixReport } from '@modelica/fmi-data';
-import { observer } from 'mobx-react';
-import * as React from 'react';
+import { MatrixReport } from "@modelica/fmi-data";
+import { observer } from "mobx-react";
+import * as React from "react";
 
-var Graph = require('react-graph-vis').default;
+var Graph = require("react-graph-vis").default;
 
-type NodeType = { id: string | number, label: string, title?: string };
-type EdgeType = { from: string | number, to: string | number };
+type NodeType = { id: string | number; label: string; title?: string };
+type EdgeType = { from: string | number; to: string | number };
+
+export interface SupportGraphProps {
+    matrix: MatrixReport;
+}
 
 @observer
-export class SupportGraph extends React.Component<{ matrix: MatrixReport }, {}> {
-    graph: { nodes: NodeType[], edges: EdgeType[] } = {
-        nodes: [
-        ],
-        edges: [
-        ]
+export class SupportGraph extends React.Component<SupportGraphProps, {}> {
+    graph: { nodes: NodeType[]; edges: EdgeType[] } = {
+        nodes: [],
+        edges: [],
     };
     options = {
         layout: {
-            hierarchical: false
+            hierarchical: false,
         },
         edges: {
-            color: "#000000"
+            color: "#000000",
         },
         interaction: {
             hideEdgesOnDrag: true,
-            tooltipDelay: 200
+            tooltipDelay: 200,
         },
     };
 
-    constructor(props?: { matrix: MatrixReport }, context?: {}) {
+    constructor(props?: SupportGraphProps, context?: {}) {
         super(props, context);
-        this.props.matrix.importers.forEach((row, ri) => {
+        this.props.matrix.importsFrom.forEach((row, ri) => {
             this.graph.nodes.push({
                 id: row.id,
                 label: ri.toFixed(0),
                 title: row.name,
             });
-            row.columns.forEach((col) => {
+            row.columns.forEach(col => {
                 this.graph.edges.push({
                     from: row.id,
                     to: col.id,

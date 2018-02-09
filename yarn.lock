@@ -15,11 +15,11 @@
     tether "^1.4"
     tslib "^1.5.0"
 
-"@modelica/fmi-data@0.11.3":
-  version "0.11.3"
-  resolved "https://registry.npmjs.org/@modelica/fmi-data/-/fmi-data-0.11.3.tgz#46cdc8c66899c4bf8023d5915b2de753d2ba2bf5"
+"@modelica/fmi-data@0.12.1":
+  version "0.12.1"
+  resolved "https://registry.npmjs.org/@modelica/fmi-data/-/fmi-data-0.12.1.tgz#258ea36c496339d324f482457fbeef3855511ba1"
   dependencies:
-    typescript "^2.6.2"
+    debug "^3.1.0"
 
 "@types/dom4@^1.5.20":
   version "1.5.20"
@@ -1273,7 +1273,7 @@ debug@2.6.9, debug@^2.2.0, debug@^2.6.0, debug@^2.6.6, debug@^2.6.8:
 
 debug@^3.1.0:
   version "3.1.0"
-  resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
+  resolved "https://registry.npmjs.org/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
   dependencies:
     ms "2.0.0"
 
@@ -3446,7 +3446,7 @@ moment@^2.18.1:
 
 ms@2.0.0:
   version "2.0.0"
-  resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
+  resolved "https://registry.npmjs.org/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
 multicast-dns-service-types@^1.1.0:
   version "1.1.0"
@@ -5451,10 +5451,6 @@ type-is@~1.6.15:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.15"
-
-typescript@^2.6.2:
-  version "2.6.2"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-2.6.2.tgz#3c5b6fd7f6de0914269027f03c0946758f7673a4"
 
 typescript@~2.5.3:
   version "2.5.3"
