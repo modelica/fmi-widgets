@@ -19,11 +19,12 @@
         "react-scripts-ts": "2.8.0"
     },
     "scripts": {
-        "rename-bundles": "cp build/`node css-bundle.js` build/bundle.css && cp build/`node js-bundle.js` build/bundle.js",
-        "prepublish": "yarn build && yarn run rename-bundles",
+        "rename-bundles":
+            "cp build/`node css-bundle.js` build/bundle.css && cp build/`node js-bundle.js` build/bundle.js",
+        "prepublish": "yarn build",
         "start": "react-scripts-ts start",
         "compile": "tsc --noEmit",
-        "build": "react-scripts-ts build",
+        "build": "react-scripts-ts build && yarn run rename-bundles",
         "test": "react-scripts-ts test --env=jsdom",
         "eject": "react-scripts-ts eject"
     },

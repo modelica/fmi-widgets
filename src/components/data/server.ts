@@ -11,6 +11,7 @@ export async function queryServer(
     variant: string | undefined,
     platform: string | undefined,
 ): Promise<MatrixReport> {
+    console.log("Loading data by querying server");
     let qs: { [key: string]: string } = {};
     if (version) qs[versionKey] = version;
     if (variant) qs[variantKey] = variant;
