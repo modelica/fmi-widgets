@@ -91,7 +91,7 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                 isOpen={open}
                 onClose={() => (this.props.viewState.selected = null)}
                 lazy={true}
-                transitionDuration={500}
+                transitionDuration={1}
             >
                 <div style={{ width: "80%", left: "10%", right: "10%", marginTop: "10vh" }}>
                     <div style={backgrounDivStyle}>

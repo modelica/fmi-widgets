@@ -5,12 +5,12 @@ import { QueryFunction } from "../data";
 import { FMISpinner } from "./spinner";
 import { Filter } from "./filter";
 import { ViewState } from "../state";
-import { supportColor } from "./logic";
 import { ButtonStack, Justification } from "./stack";
 import { ZoomView } from "./zoom";
 import { truncate } from "../utils";
 import { Columns } from "./columns";
 import { Unchecked } from "./unchecked";
+import { Colors } from "@blueprintjs/core";
 
 const colDivStyle: React.CSSProperties = {
     height: "100%",
@@ -37,8 +37,8 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
     }
 
     render() {
-        let importStyle = (id: string) => ({ backgroundColor: supportColor(this.viewState, id, false) });
-        let exportStyle = (id: string) => ({ backgroundColor: supportColor(this.viewState, id, true) });
+        let importStyle = (id: string) => ({ backgroundColor: Colors.FOREST5 });
+        let exportStyle = (id: string) => ({ backgroundColor: Colors.FOREST5 });
         let renderLabel = (id: string) => <span>{truncate(this.viewState.export_tools[id])}</span>;
 
         let columns = this.viewState.columns;
@@ -68,7 +68,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                                             renderLabel={renderLabel}
                                             justification={Justification.Block}
                                         />
-                                        <Unchecked imports={true} viewState={this.viewState} />
+                                        <Unchecked imports={false} viewState={this.viewState} />
                                     </div>
                                     <div style={colDivStyle}>
                                         <h4>
@@ -97,7 +97,7 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
                                             renderLabel={renderLabel}
                                             justification={Justification.Block}
                                         />
-                                        <Unchecked imports={false} viewState={this.viewState} />
+                                        <Unchecked imports={true} viewState={this.viewState} />
                                     </div>
                                 </Columns>
                             </div>

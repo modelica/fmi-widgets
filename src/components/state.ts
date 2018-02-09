@@ -1,6 +1,6 @@
 import { observable, computed } from "mobx";
 import { promisedComputed } from "computed-async-mobx";
-import { MatrixReport, RowReport, Status } from "@modelica/fmi-data";
+import { MatrixReport, RowReport, Status, ToolSummary, FMIVersion, FMIVariant } from "@modelica/fmi-data";
 import { QueryFunction, QueryResult } from "./data";
 
 const emptyMatrix: MatrixReport = { tools: [], exportsTo: [], importsFrom: [] };
@@ -32,6 +32,8 @@ export class ViewState {
     @observable variant: string | undefined = undefined;
     /** Platform to filter on (if any) */
     @observable platform: string | undefined = undefined;
+    /** Whether to show available and planned support */
+    @observable showUnchecked = false;
 
     /** The MatrixReport instance for the given filter parameters */
     // matrix = promisedComputed<MatrixReport>(emptyMatrix, () => {
@@ -109,6 +111,26 @@ export class ViewState {
         return null;
     }
 
+    @computed
+    get incv1() {
+        return this.version === FMIVersion.FMI1 || this.version === undefined;
+    }
+
+    @computed
+    get incv2() {
+        return this.version === FMIVersion.FMI2 || this.version === undefined;
+    }
+
+    @computed
+    get inccs() {
+        return this.variant === FMIVariant.CS || this.variant === undefined;
+    }
+
+    @computed
+    get incme() {
+        return this.variant === FMIVariant.ME || this.variant === undefined;
+    }
+
     /**
      * This computes which tools belong in the three categories:
      *   * Export only
@@ -141,23 +163,63 @@ export class ViewState {
 
     @computed
     get uncheckedImporting(): UncheckedSupport {
-        let available = this.results.get().tools.filter(tool => tool.fmi1.import === Status.Available);
-        let planned = this.results.get().tools.filter(tool => tool.fmi1.import === Status.Planned);
+        let isAvailable = (tool: ToolSummary) => this.isImporting(tool, Status.Available);
+        let isPlanned = (tool: ToolSummary) => this.isImporting(tool, Status.Planned);
+        let notCrossChecked = (id: string) =>
+            this.columns.both.indexOf(id) === -1 && this.columns.import_only.indexOf(id) === -1;
+        let available = this.results
+            .get()
+            .tools.filter(isAvailable)
+            .map(tool => tool.id)
+            .filter(notCrossChecked);
+        let planned = this.results
+            .get()
+            .tools.filter(isPlanned)
+            .map(tool => tool.id)
+            .filter(notCrossChecked);
         return {
-            available: available.map(tool => tool.id),
-            planned: planned.map(tool => tool.id),
+            available: available,
+            planned: planned,
         };
     }
 
     @computed
     get uncheckedExporting(): UncheckedSupport {
-        let available = this.results.get().tools.filter(tool => tool.fmi1.export === Status.Available);
-        let planned = this.results.get().tools.filter(tool => tool.fmi1.export === Status.Planned);
+        let isAvailable = (tool: ToolSummary) => this.isExporting(tool, Status.Available);
+        let isPlanned = (tool: ToolSummary) => this.isExporting(tool, Status.Planned);
+        let notCrossChecked = (id: string) =>
+            this.columns.both.indexOf(id) === -1 && this.columns.export_only.indexOf(id) === -1;
+        let available = this.results
+            .get()
+            .tools.filter(isAvailable)
+            .map(tool => tool.id)
+            .filter(notCrossChecked);
+        let planned = this.results
+            .get()
+            .tools.filter(isPlanned)
+            .map(tool => tool.id)
+            .filter(notCrossChecked);
         return {
-            available: available.map(tool => tool.id),
-            planned: planned.map(tool => tool.id),
+            available: available,
+            planned: planned,
         };
     }
 
     constructor(protected query: QueryFunction) {}
+
+    private isImporting(tool: ToolSummary, status: Status) {
+        return (
+            (this.incv1 &&
+                ((this.inccs && tool.fmi1.master === status) || (this.incme && tool.fmi1.import === status))) ||
+            ((this.incv2 && (this.inccs && tool.fmi2.master === status)) || (this.incme && tool.fmi2.import === status))
+        );
+    }
+
+    private isExporting(tool: ToolSummary, status: Status) {
+        return (
+            (this.incv1 &&
+                ((this.inccs && tool.fmi1.slave === status) || (this.incme && tool.fmi1.export === status))) ||
+            ((this.incv2 && (this.inccs && tool.fmi2.slave === status)) || (this.incme && tool.fmi2.export === status))
+        );
+    }
 }
