@@ -1,6 +1,7 @@
 import { MatrixReport, ToolsTable } from "@modelica/fmi-data";
 
 export interface QueryResult {
+    formatVersion: string;
     tools: ToolsTable;
     matrix: MatrixReport;
 }

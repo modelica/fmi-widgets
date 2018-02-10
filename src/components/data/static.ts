@@ -50,6 +50,7 @@ export function loadData(): QueryFunction {
             platform: platform,
         });
         let ret: QueryResult = {
+            formatVersion: "1",
             matrix: matrix,
             tools: tools,
         };

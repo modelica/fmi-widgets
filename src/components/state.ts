@@ -4,6 +4,7 @@ import { MatrixReport, RowReport, Status, ToolSummary, FMIVersion, FMIVariant } 
 import { QueryFunction, QueryResult } from "./data";
 
 const emptyMatrix: MatrixReport = { tools: [], exportsTo: [], importsFrom: [] };
+const emptyResult: QueryResult = { formatVersion: "1", matrix: emptyMatrix, tools: [] };
 
 export interface Columns {
     tools: string[];
@@ -43,7 +44,7 @@ export class ViewState {
     // });
 
     /** These are the results of the query. */
-    results = promisedComputed<QueryResult>({ matrix: emptyMatrix, tools: [] }, () => {
+    results = promisedComputed<QueryResult>(emptyResult, () => {
         return this.query(this.version, this.variant, this.platform);
     });
 
@@ -211,8 +212,13 @@ export class ViewState {
         if (this.search === "") return true;
         let lid = id.toLowerCase();
         let matchesId = lid.indexOf(this.search.toLowerCase()) >= 0;
-        // console.log("'" + term + "' matches '" + lid + "' -> ", matchesId);
-        return matchesId;
+        // return matchesId;
+        if (matchesId) return true;
+        let summary = this.results.get().tools.find(tool => tool.id === id);
+        if (!summary) return false;
+        let matchesName = summary.displayName.toLowerCase().indexOf(this.search.toLowerCase()) >= 0;
+        console.log(this.search + " matches " + summary.displayName);
+        return matchesName;
     };
 
     constructor(protected query: QueryFunction) {}
