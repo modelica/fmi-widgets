@@ -50,7 +50,7 @@ export class ViewState {
 
     @computed
     get matrix() {
-        return filterMatrix(this.results.get().matrix, this.results.get().tools, this.search);
+        return this.results.get().matrix;
     }
 
     /** A flag indicating whether we are waiting for the matrix report */
@@ -208,17 +208,23 @@ export class ViewState {
         };
     }
 
-    public matchesTerm2 = (id: string) => {
+    public matchesTerm = (id: string) => {
+        /* If the search term is an empty string, it matches everything */
         if (this.search === "") return true;
-        let lid = id.toLowerCase();
-        let matchesId = lid.indexOf(this.search.toLowerCase()) >= 0;
-        // return matchesId;
-        if (matchesId) return true;
+
+        /* Get ToolSummary */
         let summary = this.results.get().tools.find(tool => tool.id === id);
         if (!summary) return false;
-        let matchesName = summary.displayName.toLowerCase().indexOf(this.search.toLowerCase()) >= 0;
-        console.log(this.search + " matches " + summary.displayName);
-        return matchesName;
+
+        /* Check the tool's display name */
+        let matchesName = match(this.search, summary.displayName);
+        if (matchesName) return true;
+
+        /* Check the vendor information */
+        let matchesVendor = match(this.search, summary.vendor.displayName);
+        if (matchesVendor) return true;
+
+        return false;
     };
 
     constructor(protected query: QueryFunction) {}
@@ -240,7 +246,6 @@ export class ViewState {
     }
 }
 
-function filterMatrix(matrix: MatrixReport, summaries: ToolSummary[], term: string): MatrixReport {
-    if (term === "") return matrix;
-    return matrix;
+function match(term: string, str: string) {
+    return str.toLowerCase().indexOf(term.toLowerCase()) >= 0;
 }

@@ -53,14 +53,14 @@ export class Unchecked extends React.Component<UncheckedProps, {}> {
                         "Available",
                         "warning",
                         this.props.viewState,
-                        support.available.filter(this.props.viewState.matchesTerm2),
+                        support.available.filter(this.props.viewState.matchesTerm),
                         select,
                     )}
                     {describe(
                         "Planning Support",
                         "default",
                         this.props.viewState,
-                        support.planned.filter(this.props.viewState.matchesTerm2),
+                        support.planned.filter(this.props.viewState.matchesTerm),
                         select,
                     )}
                 </Collapse>

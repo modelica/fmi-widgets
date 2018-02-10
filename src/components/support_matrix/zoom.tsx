@@ -73,6 +73,8 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
         };
 
         let toolName = "";
+        let vendorName = "";
+        let vendorURL: string | null = null;
         let desc = "";
         let homepage: JSX.Element | null = null;
         let email: JSX.Element | null = null;
@@ -82,6 +84,8 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                 this.props.viewState.results.get().tools.find(t => t.id === this.props.viewState.selected) || null;
             if (summary) {
                 toolName = summary.displayName;
+                vendorName = summary.vendor.displayName;
+                vendorURL = summary.vendor.href;
                 desc = summary.note;
                 if (summary.homepage) {
                     homepage = (
@@ -113,6 +117,13 @@ export class ZoomView extends React.Component<ZoomViewProps, {}> {
                     <div style={backgrounDivStyle}>
                         <div style={rowDivStyle}>
                             <h1 style={{ textAlign: "center" }}>{toolName}</h1>
+                            {vendorURL ? (
+                                <h3 style={{ textAlign: "center" }}>
+                                    <a href={vendorURL}>{vendorName}</a>
+                                </h3>
+                            ) : (
+                                <h3 style={{ textAlign: "center" }}>{vendorName}</h3>
+                            )}
                             <p style={{ textAlign: "center" }}>{desc}</p>
                             <p style={{ textAlign: "center" }}>
                                 {homepage}

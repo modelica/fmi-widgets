@@ -42,9 +42,9 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
         let renderLabel = (id: string) => <span>{truncate(this.viewState.export_tools[id])}</span>;
 
         let columns = this.viewState.columns;
-        let exportOnly = columns.export_only.filter(this.viewState.matchesTerm2);
-        let both = columns.both.filter(this.viewState.matchesTerm2);
-        let importOnly = columns.import_only.filter(this.viewState.matchesTerm2);
+        let exportOnly = columns.export_only.filter(this.viewState.matchesTerm);
+        let both = columns.both.filter(this.viewState.matchesTerm);
+        let importOnly = columns.import_only.filter(this.viewState.matchesTerm);
 
         return (
             <div className="Support" style={{ margin: "10px" }}>
