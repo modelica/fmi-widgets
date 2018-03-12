@@ -39,7 +39,11 @@ export class SupportMatrixViewer extends React.Component<SupportMatrixProps, {}>
     render() {
         let importStyle = (id: string) => ({ backgroundColor: Colors.FOREST5 });
         let exportStyle = (id: string) => ({ backgroundColor: Colors.FOREST5 });
-        let renderLabel = (id: string) => <span>{truncate(this.viewState.export_tools[id])}</span>;
+        let renderLabel = (id: string) => {
+            let tool = this.viewState.results.get().tools.find(summary => summary.id === id);
+            if (!tool) return <span>Unknown Tool: {id}</span>; // Should not happen
+            return <span>{truncate(tool.displayName)}</span>;
+        };
 
         let columns = this.viewState.columns;
         let exportOnly = columns.export_only.filter(this.viewState.matchesTerm);
